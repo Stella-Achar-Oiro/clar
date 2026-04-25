@@ -42,7 +42,7 @@ def chat(request: ChatRequest) -> ChatResponse:
         response = _client.messages.create(
             model="claude-sonnet-4-6",
             system=_CHAT_SYSTEM,
-            messages=[{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {request.question}"}],
+            messages=[{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {request.question}"}],  # noqa: E501
             temperature=0.3,
             max_tokens=500,
         )
@@ -63,7 +63,7 @@ def chat_stream(request: ChatRequest) -> StreamingResponse:
             with _client.messages.stream(
                 model="claude-sonnet-4-6",
                 system=_CHAT_SYSTEM,
-                messages=[{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {request.question}"}],
+                messages=[{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {request.question}"}],  # noqa: E501
                 temperature=0.3,
                 max_tokens=500,
             ) as stream:
