@@ -50,5 +50,10 @@ def call_llm(
 
     # content[0] is always a TextBlock when no tools are configured
     raw = str(getattr(response.content[0], "text", ""))
+    # Strip markdown code fences that models sometimes wrap JSON in
+    raw = raw.strip()
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[-1]
+        raw = raw.rsplit("```", 1)[0]
     result: dict[str, Any] = json.loads(raw)
     return result
