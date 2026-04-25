@@ -70,6 +70,20 @@ resource "google_secret_manager_secret_version" "langsmith_api_key" {
   secret_data = var.langsmith_api_key
 }
 
+# Secret Manager — CLERK_SECRET_KEY
+resource "google_secret_manager_secret" "clerk_secret_key" {
+  secret_id  = "CLERK_SECRET_KEY"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.secret_manager]
+}
+
+resource "google_secret_manager_secret_version" "clerk_secret_key" {
+  secret      = google_secret_manager_secret.clerk_secret_key.id
+  secret_data = var.clerk_secret_key
+}
+
 data "google_project" "project" {
   project_id = var.project_id
 }
@@ -109,6 +123,16 @@ resource "google_cloud_run_v2_service" "clar" {
         value_source {
           secret_key_ref {
             secret  = google_secret_manager_secret.langsmith_api_key.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "CLERK_SECRET_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.clerk_secret_key.secret_id
             version = "latest"
           }
         }
@@ -164,6 +188,12 @@ resource "google_secret_manager_secret_iam_member" "anthropic_access" {
 
 resource "google_secret_manager_secret_iam_member" "langsmith_access" {
   secret_id = google_secret_manager_secret.langsmith_api_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "clerk_access" {
+  secret_id = google_secret_manager_secret.clerk_secret_key.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
 }

@@ -26,3 +26,9 @@ variable "langsmith_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "clerk_secret_key" {
+  description = "Clerk secret key — stored in Secret Manager"
+  type        = string
+  sensitive   = true
+}
