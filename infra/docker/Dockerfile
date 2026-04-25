@@ -17,8 +17,8 @@ FROM python:3.11-slim AS python-builder
 RUN pip install uv
 WORKDIR /build
 COPY requirements.txt .
-RUN uv pip install --target /venv -r requirements.txt
-RUN python -m spacy download en_core_web_lg --target /venv
+RUN uv pip install --target /venv -r requirements.txt && \
+    uv pip install --target /venv https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.1/en_core_web_lg-3.7.1-py3-none-any.whl
 
 # Stage 3: Runtime (non-root)
 FROM python:3.11-slim
