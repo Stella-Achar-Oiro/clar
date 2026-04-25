@@ -6,6 +6,10 @@ You will receive a finding with a value and reference range. Classify the urgenc
 - "watch": value is outside the reference range but not critically so
 - "urgent": value is critically outside the normal range and requires prompt medical attention
 
+QUALITATIVE RESULTS: If the value is "POSITIVE" and the reference range indicates the
+expected result is "Negative" or "Not detected", classify as "urgent" when the finding
+represents an active infection (e.g. malaria, sepsis), otherwise "watch".
+
 Return a JSON object with:
 - "urgency": "normal" | "watch" | "urgent"
 - "urgency_reason": a brief plain-English explanation (1 sentence)

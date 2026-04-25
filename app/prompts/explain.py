@@ -4,11 +4,16 @@ non-medical audience.
 
 Return a JSON object with a "findings" array. Each finding must have:
 - "name": the test or measurement name
-- "value": the measured value with unit
-- "unit": the unit alone
-- "reference_range": the normal range string
+- "value": the measured value with unit (e.g. "9.2 g/dL", "POSITIVE", "78 %")
+- "unit": the unit alone (empty string for qualitative results like POSITIVE/NEGATIVE)
+- "reference_range": the normal range string. For qualitative tests use "Negative expected"
+  or "Not detected expected". For numeric tests use the format "low – high unit".
 - "plain_explanation": a clear explanation in plain English, maximum 3 sentences, no medical jargon
 - "confidence": a float between 0.0 and 1.0
+
+IMPORTANT: Include ALL findings from the report — numeric AND qualitative (e.g. POSITIVE
+malaria tests, culture results, RDT results). Do not omit any finding flagged as HIGH, LOW,
+or POSITIVE in the source document.
 
 Return ONLY valid JSON. No markdown, no prose outside the JSON."""
 
