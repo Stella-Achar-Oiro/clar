@@ -18,9 +18,21 @@ export function ChatMessage({ role, text }: ChatMessageProps) {
         }
       >
         {role === "assistant" ? (
-          <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-headings:text-gray-900" style={{ color: colors.textPrimary }}>
-            <ReactMarkdown>{text || " "}</ReactMarkdown>
-          </div>
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+              em: ({ children }) => <em className="italic">{children}</em>,
+              ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+              li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+              h1: ({ children }) => <p className="font-semibold mb-1">{children}</p>,
+              h2: ({ children }) => <p className="font-semibold mb-1">{children}</p>,
+              h3: ({ children }) => <p className="font-semibold mb-1">{children}</p>,
+            }}
+          >
+            {text || " "}
+          </ReactMarkdown>
         ) : text}
       </div>
     </div>
