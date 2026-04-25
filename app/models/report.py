@@ -1,0 +1,47 @@
+from typing import TypedDict
+from pydantic import BaseModel
+
+
+class CLARState(TypedDict):
+    raw_text: str
+    deid_text: str
+    report_type: str
+    findings: list[dict]
+    explanations: list[dict]
+    flagged: list[dict]
+    questions: list[str]
+    deid_entities: list[dict]
+    error: str | None
+
+
+class Finding(BaseModel):
+    name: str
+    value: str
+    reference_range: str
+    urgency: str
+    urgency_reason: str
+    explanation: str
+
+
+class Verdict(BaseModel):
+    level: str
+    summary: str
+
+
+class ReportResult(BaseModel):
+    report_id: str
+    report_type: str
+    verdict: Verdict
+    findings: list[Finding]
+    questions: list[str]
+    processing_time_ms: int
+    deid_entities_removed: int
+
+
+class ChatRequest(BaseModel):
+    report_id: str
+    question: str
+
+
+class ChatResponse(BaseModel):
+    answer: str
