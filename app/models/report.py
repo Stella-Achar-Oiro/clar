@@ -39,9 +39,20 @@ class ReportResult(BaseModel):
     deid_entities_removed: int
 
 
+class ChatFinding(BaseModel):
+    name: str
+    value: str
+    reference_range: str
+    urgency: str
+    explanation: str
+
+
 class ChatRequest(BaseModel):
     report_id: str
     question: str
+    report_type: str = ""
+    findings: list[ChatFinding] = []
+    questions: list[str] = []
 
 
 class ChatResponse(BaseModel):

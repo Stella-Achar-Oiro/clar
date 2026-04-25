@@ -104,6 +104,8 @@ export default function IndexPage() {
         {result && (
           <ChatDrawer
             reportId={result.report_id}
+            reportType={result.report_type}
+            findings={result.findings}
             open={chatOpen}
             onClose={() => setChatOpen(false)}
             starterQuestions={result.questions}

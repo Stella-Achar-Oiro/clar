@@ -1,83 +1,28 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { colors } from "@/styles/tokens";
 import { ChatMessage } from "./ChatMessage";
-
-interface Message {
-  role: "user" | "assistant";
-  text: string;
-}
+import { Finding } from "@/lib/types";
+import { useChatStream } from "@/lib/useChatStream";
 
 interface ChatDrawerProps {
   reportId: string;
+  reportType: string;
+  findings: Finding[];
   open: boolean;
   onClose: () => void;
   starterQuestions: string[];
 }
 
-const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
-
-export function ChatDrawer({ reportId, open, onClose, starterQuestions }: ChatDrawerProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function ChatDrawer({ reportId, reportType, findings, open, onClose, starterQuestions }: ChatDrawerProps) {
+  const { messages, streaming, send } = useChatStream(reportId, reportType, findings, starterQuestions);
   const [input, setInput] = useState("");
-  const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 50); }, [open]);
 
-  useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 50);
-  }, [open]);
-
-  async function handleSend(text: string) {
-    if (!text.trim() || streaming) return;
-    const question = text.trim();
-    setMessages((prev) => [...prev, { role: "user", text: question }]);
-    setInput("");
-    setStreaming(true);
-    setMessages((prev) => [...prev, { role: "assistant", text: "" }]);
-
-    try {
-      const res = await fetch(`${BASE}/api/chat/stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ report_id: reportId, question }),
-      });
-      if (!res.ok || !res.body) throw new Error("Stream failed");
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const chunk = line.slice(6);
-          if (chunk === "[DONE]" || chunk === "[ERROR]") break;
-          setMessages((prev) => {
-            const next = [...prev];
-            next[next.length - 1] = { role: "assistant", text: next[next.length - 1].text + chunk };
-            return next;
-          });
-        }
-      }
-    } catch {
-      setMessages((prev) => {
-        const next = [...prev];
-        next[next.length - 1] = { role: "assistant", text: "Sorry, I couldn't answer that. Please try again." };
-        return next;
-      });
-    } finally {
-      setStreaming(false);
-    }
-  }
+  function handleSend(text: string) { send(text); setInput(""); }
 
   if (!open) return null;
 
@@ -104,9 +49,7 @@ export function ChatDrawer({ reportId, open, onClose, starterQuestions }: ChatDr
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4" style={{ minHeight: 0 }}>
           {messages.length === 0 && (
             <div>
-              <p className="text-sm mb-3" style={{ color: colors.textSecondary }}>
-                Ask a question about your report, or try one of these:
-              </p>
+              <p className="text-sm mb-3" style={{ color: colors.textSecondary }}>Ask a question about your report, or try one of these:</p>
               <div className="space-y-2">
                 {starterQuestions.slice(0, 3).map((q) => (
                   <button key={q} onClick={() => handleSend(q)}
@@ -120,9 +63,7 @@ export function ChatDrawer({ reportId, open, onClose, starterQuestions }: ChatDr
           {messages.map((msg, i) => <ChatMessage key={i} role={msg.role} text={msg.text} />)}
           {streaming && messages[messages.length - 1]?.text === "" && (
             <div className="flex justify-start">
-              <div className="text-sm px-4 py-3 rounded-xl animate-pulse" style={{ backgroundColor: colors.surface, color: colors.textSecondary }}>
-                Thinking...
-              </div>
+              <div className="text-sm px-4 py-3 rounded-xl animate-pulse" style={{ backgroundColor: colors.surface, color: colors.textSecondary }}>Thinking...</div>
             </div>
           )}
           <div ref={bottomRef} />
