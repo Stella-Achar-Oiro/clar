@@ -1,0 +1,8 @@
+Radiology Report
+Patient: Jane Doe
+DOB: 1975-03-15
+NHS Number: 123 456 7890
+
+PROCEDURE: Chest X-Ray PA
+FINDINGS: Mild consolidation in the right lower lobe. Cardiac silhouette within normal limits.
+IMPRESSION: Findings consistent with early pneumonia. Follow-up recommended in 6 weeks.
