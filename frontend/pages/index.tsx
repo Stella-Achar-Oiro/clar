@@ -1,115 +1,94 @@
-import Image from "next/image";
-import localFont from "next/font/local";
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { NavBar } from "@/components/shared/NavBar";
+import { UploadZone } from "@/components/upload/UploadZone";
+import { SampleButton } from "@/components/upload/SampleButton";
+import { TrustBadges } from "@/components/upload/TrustBadges";
+import { LoadingScreen } from "@/components/shared/LoadingScreen";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { uploadReport } from "@/lib/api";
+import { ReportResult } from "@/lib/types";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+type UploadState = "idle" | "uploading" | "error";
 
-export default function Home() {
+export default function IndexPage() {
+  const router = useRouter();
+  const [uploadState, setUploadState] = useState<UploadState>("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [step, setStep] = useState(0);
+
+  async function handleFile(file: File) {
+    setUploadState("uploading");
+    setStep(0);
+
+    const timer = setInterval(() => setStep((s) => Math.min(s + 1, 4)), 1200);
+
+    try {
+      const result: ReportResult = await uploadReport(file);
+      clearInterval(timer);
+      sessionStorage.setItem("clar_result", JSON.stringify(result));
+      router.push("/results");
+    } catch (err) {
+      clearInterval(timer);
+      setErrorMessage(err instanceof Error ? err.message : "Upload failed. Please try again.");
+      setUploadState("error");
+    }
+  }
+
   return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen" style={{ backgroundColor: "#F5F7FA" }}>
+      <NavBar />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <main className="max-w-2xl mx-auto px-4 py-16">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold mb-3" style={{ color: "#1B2A4A" }}>
+            Understand your medical report
+          </h1>
+          <p className="text-base" style={{ color: "#6B7280" }}>
+            Upload a lab result, radiology report, or discharge summary. CLAR explains it in plain English.
+          </p>
         </div>
+
+        <SignedOut>
+          <div
+            className="rounded-xl p-8 text-center"
+            style={{ backgroundColor: "#FFFFFF", border: "1px solid #E0E0E0" }}
+          >
+            <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>
+              Sign in to analyse your report.
+            </p>
+            <SignInButton mode="modal">
+              <button
+                className="px-6 py-2.5 rounded-lg text-white font-semibold text-sm"
+                style={{ backgroundColor: "#2563EB" }}
+              >
+                Sign in
+              </button>
+            </SignInButton>
+          </div>
+        </SignedOut>
+
+        <SignedIn>
+          {uploadState === "idle" && (
+            <>
+              <UploadZone onFile={handleFile} />
+              <div className="text-center">
+                <SampleButton onLoad={handleFile} />
+              </div>
+            </>
+          )}
+          {uploadState === "uploading" && <LoadingScreen currentStep={step} />}
+          {uploadState === "error" && (
+            <ErrorState
+              message={errorMessage}
+              onRetry={() => setUploadState("idle")}
+            />
+          )}
+        </SignedIn>
+
+        <TrustBadges />
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
