@@ -16,7 +16,7 @@ export function LoadingScreen({ currentStep = 0 }: LoadingScreenProps) {
       <div className="mb-6">
         <div
           className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin"
-          style={{ borderColor: "#2563EB", borderTopColor: "transparent" }}
+          style={{ borderColor: "#E05A00", borderTopColor: "transparent" }}
         />
       </div>
       <h3 className="text-lg font-semibold mb-4" style={{ color: "#0F172A" }}>
@@ -28,7 +28,7 @@ export function LoadingScreen({ currentStep = 0 }: LoadingScreenProps) {
             <div
               className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center"
               style={{
-                backgroundColor: i < currentStep ? "#1E8B5A" : i === currentStep ? "#2563EB" : "#E0E0E0",
+                backgroundColor: i < currentStep ? "#1E8B5A" : i === currentStep ? "#E05A00" : "#E0E0E0",
               }}
             >
               {i < currentStep && (

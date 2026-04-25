@@ -42,7 +42,7 @@ export default function IndexPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold mb-3" style={{ color: "#1B2A4A" }}>
+          <h1 className="text-3xl font-bold mb-3" style={{ color: "#E05A00" }}>
             Understand your medical report
           </h1>
           <p className="text-base" style={{ color: "#6B7280" }}>
@@ -61,7 +61,7 @@ export default function IndexPage() {
             <SignInButton mode="modal">
               <button
                 className="px-6 py-2.5 rounded-lg text-white font-semibold text-sm"
-                style={{ backgroundColor: "#2563EB" }}
+                style={{ backgroundColor: "#E05A00" }}
               >
                 Sign in
               </button>

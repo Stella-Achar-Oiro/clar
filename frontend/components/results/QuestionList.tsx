@@ -17,7 +17,7 @@ export function QuestionList({ questions }: QuestionListProps) {
           >
             <span
               className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-              style={{ backgroundColor: "#2563EB" }}
+              style={{ backgroundColor: "#E05A00" }}
             >
               {i + 1}
             </span>

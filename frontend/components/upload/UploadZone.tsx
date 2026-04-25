@@ -29,8 +29,8 @@ export function UploadZone({ onFile, disabled = false }: UploadZoneProps) {
       onClick={() => !disabled && inputRef.current?.click()}
       className="border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-colors"
       style={{
-        borderColor: dragging ? "#2563EB" : "#CBD5E1",
-        backgroundColor: dragging ? "#EFF6FF" : "#FFFFFF",
+        borderColor: dragging ? "#E05A00" : "#CBD5E1",
+        backgroundColor: dragging ? "#FFF3ED" : "#FFFFFF",
         opacity: disabled ? 0.6 : 1,
         cursor: disabled ? "not-allowed" : "pointer",
       }}
