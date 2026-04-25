@@ -52,6 +52,42 @@ def test_pipeline_deid_removes_pii():
     assert "12345678" not in result["deid_text"]
 
 
+def test_pipeline_discharge_summary():
+    from app.agents.pipeline import run_pipeline
+
+    mock_discharge_findings = {
+        "findings": [
+            {
+                "name": "WBC",
+                "value": "14.2 x10^3/uL",
+                "unit": "x10^3/uL",
+                "reference_range": "4.5-11.0 x10^3/uL",
+                "plain_explanation": "Your white blood cell count is elevated, consistent with infection.",
+                "confidence": 0.95,
+            }
+        ]
+    }
+    mock_discharge_questions = {
+        "questions": [
+            "When should I finish the antibiotics?",
+            "What symptoms mean I need to go back to hospital?",
+            "Will my glucose improve once the infection clears?",
+            "When will I get my follow-up X-ray?",
+            "Should I see a lung specialist?",
+        ]
+    }
+
+    with patch("app.agents.explain_agent.call_llm", return_value=mock_discharge_findings), \
+         patch("app.agents.advisor_agent.call_llm", return_value=mock_discharge_questions):
+        result = run_pipeline(FIXTURES / "sample_discharge.txt")
+
+    assert result["error"] is None
+    assert result["report_type"] in ("discharge", "lab", "radiology")
+    assert len(result["questions"]) == 5
+    assert "Mary Johnson" not in result["deid_text"]
+    assert "87654321" not in result["deid_text"]
+
+
 def test_pipeline_aborts_on_empty_file(tmp_path):
     from app.agents.pipeline import run_pipeline
 

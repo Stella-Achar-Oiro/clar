@@ -101,6 +101,35 @@ All pipeline runs are traced in LangSmith under the `clar-production` project.
 
 ---
 
+## Evaluation
+
+### Urgency classification accuracy
+
+The `evals/eval_urgency.py` script validates the rules-based urgency classifier (`flag_agent`) against 21 labelled clinical test cases covering haematology, metabolic, and renal findings.
+
+```
+python evals/eval_urgency.py --verbose --min-accuracy 0.90
+```
+
+| Metric | Result |
+|---|---|
+| Test cases | 21 (haematology, metabolic, renal) |
+| Accuracy | 100% (21/21) |
+| Threshold | ≥90% required — enforced in CI |
+
+**Note:** The rules-based classifier handles numeric findings by computing the percentage deviation from the reference range (threshold: 50% for urgent). Qualitative findings (radiology, discharge text) fall through to the LLM with a structured prompt, which is validated manually against the sample fixtures.
+
+### LLM output quality
+
+Prompt design was validated against the three sample fixture types (CBC lab, radiology, discharge summary):
+
+- **Structured JSON output**: system prompt includes schema definition; JSON fences stripped automatically
+- **Few-shot examples**: two in-context examples in `explain_agent` for CBC and radiology report formats
+- **Temperature tuning**: 0.1 for extraction (deterministic), 0.4 for advice (creative)
+- **Retry on transient errors**: up to 3 attempts with exponential backoff (2s, 4s) for 429/5xx responses
+
+---
+
 ## Project structure
 
 ```
