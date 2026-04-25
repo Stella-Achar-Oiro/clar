@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from typing import Any
 
 from anthropic import Anthropic
 from fastapi import APIRouter, HTTPException
@@ -51,7 +52,7 @@ def chat(request: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=500, detail="Chat is temporarily unavailable.")
 
 
-def _build_context(session: dict[str, object]) -> str:
+def _build_context(session: dict[str, Any]) -> str:
     return f"""Report type: {session['report_type']}
 
 Findings:
