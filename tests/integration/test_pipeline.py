@@ -62,7 +62,7 @@ def test_pipeline_discharge_summary():
                 "value": "14.2 x10^3/uL",
                 "unit": "x10^3/uL",
                 "reference_range": "4.5-11.0 x10^3/uL",
-                "plain_explanation": "Your white blood cell count is elevated, consistent with infection.",
+                "plain_explanation": "WBC elevated — consistent with infection.",
                 "confidence": 0.95,
             }
         ]
