@@ -1,10 +1,13 @@
 import re
 import time
-from app.models.report import CLARState
-from app.services.llm import call_llm
-from app.prompts.flag import SYSTEM_PROMPT, build_flag_message
-from app.observability.metrics import AGENT_DURATION
+from typing import Any
+
 from loguru import logger
+
+from app.models.report import CLARState
+from app.observability.metrics import AGENT_DURATION
+from app.prompts.flag import SYSTEM_PROMPT, build_flag_message
+from app.services.llm import call_llm
 
 _RANGE_RE = re.compile(r"([\d.]+)\s*[-–]\s*([\d.]+)")
 _VALUE_RE = re.compile(r"([\d.]+)")
@@ -25,7 +28,7 @@ def classify_numeric(value: float, low: float, high: float) -> tuple[str, str]:
     return urgency, f"Value is above the normal range ({value} vs {low}–{high})."
 
 
-def _try_rules(finding: dict) -> tuple[str, str] | None:
+def _try_rules(finding: dict[str, Any]) -> tuple[str, str] | None:
     range_match = _RANGE_RE.search(finding.get("reference_range", ""))
     value_match = _VALUE_RE.search(finding.get("value", ""))
     if not range_match or not value_match:
@@ -39,7 +42,7 @@ def _try_rules(finding: dict) -> tuple[str, str] | None:
         return None
 
 
-def _llm_fallback(finding: dict) -> tuple[str, str]:
+def _llm_fallback(finding: dict[str, Any]) -> tuple[str, str]:
     msg = build_flag_message(
         name=finding["name"],
         value=finding["value"],
@@ -58,7 +61,7 @@ def _llm_fallback(finding: dict) -> tuple[str, str]:
 
 def run_flag_agent(state: CLARState) -> CLARState:
     start = time.time()
-    flagged: list[dict] = []
+    flagged: list[dict[str, Any]] = []
     for finding in state["explanations"]:
         rules_result = _try_rules(finding)
         if rules_result:

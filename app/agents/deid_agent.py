@@ -1,6 +1,7 @@
+from loguru import logger
+
 from app.models.report import CLARState
 from app.services.deid import deidentify
-from loguru import logger
 
 
 def run_deid_agent(state: CLARState) -> CLARState:

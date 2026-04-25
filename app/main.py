@@ -1,19 +1,22 @@
 import uuid
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
-from app.observability.logging import configure_logging
-from app.api.routes import health, metrics, upload, chat
-from app.services.llm import LLMTimeoutError
 from loguru import logger
+
+from app.api.routes import chat, health, metrics, upload
+from app.observability.logging import configure_logging
+from app.services.llm import LLMTimeoutError
 
 configure_logging()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("clar_startup")
     yield
     logger.info("clar_shutdown")
@@ -34,19 +37,26 @@ async def file_too_large(_: Request, exc: Exception) -> JSONResponse:
 
 @app.exception_handler(415)
 async def unsupported_media(_: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=415, content={"error": "Only PDF and plain text files are supported"})
+    return JSONResponse(
+        status_code=415, content={"error": "Only PDF and plain text files are supported"}
+    )
 
 
 @app.exception_handler(LLMTimeoutError)
 async def llm_timeout(_: Request, exc: LLMTimeoutError) -> JSONResponse:
-    return JSONResponse(status_code=504, content={"error": "Analysis is taking longer than expected. Please try again."})
+    return JSONResponse(
+        status_code=504,
+        content={"error": "Analysis is taking longer than expected. Please try again."},
+    )
 
 
 @app.exception_handler(Exception)
 async def generic_error(request: Request, exc: Exception) -> JSONResponse:
     request_id = str(uuid.uuid4())
     logger.error("unhandled_exception", error=str(exc), request_id=request_id)
-    return JSONResponse(status_code=500, content={"error": "Internal server error", "request_id": request_id})
+    return JSONResponse(
+        status_code=500, content={"error": "Internal server error", "request_id": request_id}
+    )
 
 
 # Serve Next.js static export if it exists

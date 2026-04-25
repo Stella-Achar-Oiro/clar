@@ -1,6 +1,10 @@
 import json
+from typing import Any
+
 import httpx
 from anthropic import Anthropic
+from anthropic.types import MessageParam
+
 from app.config import settings
 from app.observability.metrics import LLM_TOKENS
 
@@ -19,16 +23,20 @@ MODEL = "claude-sonnet-4-6"
 
 def call_llm(
     system: str,
-    messages: list[dict],
+    messages: list[dict[str, Any]],
     temperature: float,
     max_tokens: int,
     agent_name: str,
-) -> dict:
+) -> dict[str, Any]:
+    # Cast to MessageParam — our dicts always match the expected shape
+    typed_messages: list[MessageParam] = [
+        {"role": m["role"], "content": m["content"]} for m in messages
+    ]
     try:
         response = _client.messages.create(
             model=MODEL,
             system=system,
-            messages=messages,
+            messages=typed_messages,
             temperature=temperature,
             max_tokens=max_tokens,
         )
@@ -40,5 +48,7 @@ def call_llm(
     LLM_TOKENS.labels(agent_name=agent_name, direction="input").inc(input_tokens)
     LLM_TOKENS.labels(agent_name=agent_name, direction="output").inc(output_tokens)
 
-    raw = response.content[0].text
-    return json.loads(raw)
+    # content[0] is always a TextBlock when no tools are configured
+    raw = str(getattr(response.content[0], "text", ""))
+    result: dict[str, Any] = json.loads(raw)
+    return result

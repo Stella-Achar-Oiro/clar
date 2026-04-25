@@ -1,14 +1,21 @@
+import tempfile
 import time
 import uuid
 from pathlib import Path
-import tempfile
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.agents.pipeline import run_pipeline
-from app.models.report import ReportResult, Verdict, Finding
-from app.services.session import get_shared_store
-from app.config import settings
-from app.observability.metrics import REQUESTS_TOTAL, PIPELINE_DURATION, DEID_ENTITIES_TOTAL, ERRORS_TOTAL
+
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from loguru import logger
+
+from app.agents.pipeline import run_pipeline
+from app.config import settings
+from app.models.report import Finding, ReportResult, Verdict
+from app.observability.metrics import (
+    DEID_ENTITIES_TOTAL,
+    ERRORS_TOTAL,
+    PIPELINE_DURATION,
+    REQUESTS_TOTAL,
+)
+from app.services.session import get_shared_store
 
 router = APIRouter(prefix="/api")
 
@@ -46,7 +53,10 @@ async def upload_report(file: UploadFile = File(...)) -> ReportResult:
 
         if state.get("error") == "deid_failed":
             ERRORS_TOTAL.labels(error_type="deid_failed").inc()
-            raise HTTPException(status_code=422, detail="Could not safely process this document. Please try again.")
+            raise HTTPException(
+                status_code=422,
+                detail="Could not safely process this document. Please try again.",
+            )
 
         duration_ms = int((time.time() - start) * 1000)
         deid_count = sum(e["count"] for e in state.get("deid_entities", []))

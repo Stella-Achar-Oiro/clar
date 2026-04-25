@@ -1,9 +1,11 @@
 import time
-from app.models.report import CLARState
-from app.services.llm import call_llm
-from app.prompts.advisor import SYSTEM_PROMPT, build_advisor_message
-from app.observability.metrics import AGENT_DURATION
+
 from loguru import logger
+
+from app.models.report import CLARState
+from app.observability.metrics import AGENT_DURATION
+from app.prompts.advisor import SYSTEM_PROMPT, build_advisor_message
+from app.services.llm import call_llm
 
 
 def run_advisor_agent(state: CLARState) -> CLARState:

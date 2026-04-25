@@ -1,4 +1,3 @@
-import pytest
 from app.services.deid import deidentify
 
 # Known PII strings that MUST NOT appear in de-identified output

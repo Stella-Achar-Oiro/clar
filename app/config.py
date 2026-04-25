@@ -14,4 +14,4 @@ class Settings(BaseSettings):
     report_session_ttl_minutes: int = 30
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]  # pydantic_settings reads from .env

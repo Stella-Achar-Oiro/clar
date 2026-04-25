@@ -1,18 +1,21 @@
 from datetime import datetime, timedelta
 from threading import Lock
+from typing import Any
+
+from app.config import settings as _settings
 
 
 class SessionStore:
     def __init__(self, ttl_minutes: int) -> None:
         self._ttl = timedelta(minutes=ttl_minutes)
-        self._store: dict[str, tuple[dict, datetime]] = {}
+        self._store: dict[str, tuple[dict[str, Any], datetime]] = {}
         self._lock = Lock()
 
-    def put(self, report_id: str, data: dict) -> None:
+    def put(self, report_id: str, data: dict[str, Any]) -> None:
         with self._lock:
             self._store[report_id] = (data, datetime.utcnow())
 
-    def get(self, report_id: str) -> dict | None:
+    def get(self, report_id: str) -> dict[str, Any] | None:
         with self._lock:
             entry = self._store.get(report_id)
             if entry is None:
@@ -23,8 +26,6 @@ class SessionStore:
                 return None
             return data
 
-
-from app.config import settings as _settings
 
 _shared_store: "SessionStore | None" = None
 _store_lock = Lock()

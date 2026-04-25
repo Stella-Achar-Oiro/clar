@@ -1,9 +1,11 @@
 import time
-from app.models.report import CLARState
-from app.services.llm import call_llm
-from app.prompts.explain import SYSTEM_PROMPT, build_explain_messages
-from app.observability.metrics import AGENT_DURATION
+
 from loguru import logger
+
+from app.models.report import CLARState
+from app.observability.metrics import AGENT_DURATION
+from app.prompts.explain import SYSTEM_PROMPT, build_explain_messages
+from app.services.llm import call_llm
 
 
 def run_explain_agent(state: CLARState) -> CLARState:

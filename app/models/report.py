@@ -1,4 +1,5 @@
-from typing import TypedDict
+from typing import Any, TypedDict
+
 from pydantic import BaseModel
 
 
@@ -6,11 +7,11 @@ class CLARState(TypedDict):
     raw_text: str
     deid_text: str
     report_type: str
-    findings: list[dict]
-    explanations: list[dict]
-    flagged: list[dict]
+    findings: list[dict[str, Any]]
+    explanations: list[dict[str, Any]]
+    flagged: list[dict[str, Any]]
     questions: list[str]
-    deid_entities: list[dict]
+    deid_entities: list[dict[str, Any]]
     error: str | None
 
 

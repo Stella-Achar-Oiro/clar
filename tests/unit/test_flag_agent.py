@@ -1,6 +1,6 @@
-import pytest
 from unittest.mock import patch
-from app.agents.flag_agent import run_flag_agent, classify_numeric
+
+from app.agents.flag_agent import classify_numeric, run_flag_agent
 from app.models.report import CLARState
 
 
@@ -71,8 +71,14 @@ def test_flag_agent_uses_llm_for_qualitative_finding():
 
 def test_flag_agent_returns_all_findings():
     explanations = [
-        {"name": "A", "value": "5.0", "unit": "", "reference_range": "4.0-6.0", "plain_explanation": "x", "confidence": 0.9},
-        {"name": "B", "value": "2.0", "unit": "", "reference_range": "4.0-6.0", "plain_explanation": "x", "confidence": 0.9},
+        {
+            "name": "A", "value": "5.0", "unit": "",
+            "reference_range": "4.0-6.0", "plain_explanation": "x", "confidence": 0.9,
+        },
+        {
+            "name": "B", "value": "2.0", "unit": "",
+            "reference_range": "4.0-6.0", "plain_explanation": "x", "confidence": 0.9,
+        },
     ]
     state = _make_state(explanations)
     result = run_flag_agent(state)

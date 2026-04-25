@@ -1,6 +1,8 @@
-import pytest
 from pathlib import Path
-from app.services.extractor import extract_text, detect_report_type
+
+import pytest
+
+from app.services.extractor import detect_report_type, extract_text
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 

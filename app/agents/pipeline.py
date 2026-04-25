@@ -1,13 +1,16 @@
 from pathlib import Path
-from langgraph.graph import StateGraph, END
+from typing import cast
+
+from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-from app.models.report import CLARState
-from app.agents.extract_agent import run_extract_agent
-from app.agents.deid_agent import run_deid_agent, deid_router
-from app.agents.explain_agent import run_explain_agent
-from app.agents.flag_agent import run_flag_agent
-from app.agents.advisor_agent import run_advisor_agent
 from loguru import logger
+
+from app.agents.advisor_agent import run_advisor_agent
+from app.agents.deid_agent import deid_router, run_deid_agent
+from app.agents.explain_agent import run_explain_agent
+from app.agents.extract_agent import run_extract_agent
+from app.agents.flag_agent import run_flag_agent
+from app.models.report import CLARState
 
 
 def _error_node(state: CLARState) -> CLARState:
@@ -57,6 +60,6 @@ def run_pipeline(file_path: Path) -> CLARState:
     state_after_extract = run_extract_agent(initial, file_path)
 
     logger.info("pipeline_start", report_type=state_after_extract["report_type"])
-    result = _graph.invoke(state_after_extract)
+    result = cast(CLARState, _graph.invoke(state_after_extract))
     logger.info("pipeline_complete", error=result.get("error"))
     return result

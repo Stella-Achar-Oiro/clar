@@ -1,6 +1,7 @@
 from pathlib import Path
+
 from app.models.report import CLARState
-from app.services.extractor import extract_text, detect_report_type
+from app.services.extractor import detect_report_type, extract_text
 
 
 def run_extract_agent(state: CLARState, file_path: Path) -> CLARState:

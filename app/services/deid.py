@@ -1,9 +1,10 @@
-import re
 from collections import Counter
-from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern
+from typing import Any
+
+from loguru import logger
+from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
-from loguru import logger
 
 _ENTITY_TO_REPLACEMENT: dict[str, str] = {
     "PERSON": "[PATIENT]",
@@ -28,12 +29,12 @@ _SSN_RECOGNISER = PatternRecognizer(supported_entity="US_SSN", patterns=[_SSN_PA
 _analyser = AnalyzerEngine()
 _analyser.registry.add_recognizer(_MRN_RECOGNISER)
 _analyser.registry.add_recognizer(_SSN_RECOGNISER)
-_anonymiser = AnonymizerEngine()
+_anonymiser = AnonymizerEngine()  # type: ignore[no-untyped-call]  # presidio lacks stubs
 
 _ENTITIES = list(_ENTITY_TO_REPLACEMENT.keys())
 
 
-def deidentify(text: str) -> tuple[str, list[dict], bool]:
+def deidentify(text: str) -> tuple[str, list[dict[str, Any]], bool]:
     """
     Returns (anonymised_text, entity_list, deid_failed).
     deid_failed=True if text is empty or an exception occurs — caller must abort pipeline.
@@ -51,7 +52,7 @@ def deidentify(text: str) -> tuple[str, list[dict], bool]:
 
         anonymised = _anonymiser.anonymize(
             text=text,
-            analyzer_results=results,
+            analyzer_results=results,  # type: ignore[arg-type]  # presidio type mismatch
             operators=operators,
         )
 

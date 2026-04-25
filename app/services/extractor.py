@@ -1,11 +1,24 @@
 from pathlib import Path
+
 import pdfplumber
 
 _REPORT_TYPE_KEYWORDS: dict[str, list[str]] = {
-    "radiology": ["radiology", "x-ray", "xray", "mri", "ct scan", "ultrasound", "imaging", "findings:", "impression:"],
-    "pathology": ["pathology", "biopsy", "histology", "specimen", "microscopic", "gross description"],
-    "discharge": ["discharge summary", "discharged", "admission date", "discharge date", "discharge diagnosis"],
-    "lab": ["cbc", "blood panel", "haemoglobin", "hemoglobin", "glucose", "creatinine", "laboratory", "lab results"],
+    "radiology": [
+        "radiology", "x-ray", "xray", "mri", "ct scan",
+        "ultrasound", "imaging", "findings:", "impression:",
+    ],
+    "pathology": [
+        "pathology", "biopsy", "histology", "specimen",
+        "microscopic", "gross description",
+    ],
+    "discharge": [
+        "discharge summary", "discharged", "admission date",
+        "discharge date", "discharge diagnosis",
+    ],
+    "lab": [
+        "cbc", "blood panel", "haemoglobin", "hemoglobin",
+        "glucose", "creatinine", "laboratory", "lab results",
+    ],
 }
 
 
@@ -25,7 +38,10 @@ def _extract_pdf(path: Path) -> str:
             if text:
                 pages.append(text)
     if not pages:
-        raise ValueError("PDF contains no extractable text — may be a scanned image. Only digital PDFs are supported.")
+        raise ValueError(
+            "PDF contains no extractable text — may be a scanned image."
+            " Only digital PDFs are supported."
+        )
     return "\n".join(pages)
 
 
