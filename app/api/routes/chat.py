@@ -79,7 +79,10 @@ def chat_stream(request: ChatRequest) -> StreamingResponse:
                 model="claude-sonnet-4-6",
                 system=_CHAT_SYSTEM,
                 messages=[
-                    {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {request.question}"},
+                    {
+                        "role": "user",
+                        "content": f"Context:\n{context}\n\nQuestion: {request.question}",
+                    },
                 ],
                 temperature=0.3,
                 max_tokens=500,
