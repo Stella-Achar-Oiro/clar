@@ -18,7 +18,7 @@ export function ChatMessage({ role, text }: ChatMessageProps) {
         }
       >
         {role === "assistant" ? (
-          <div className="prose prose-sm max-w-none" style={{ color: colors.textPrimary }}>
+          <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-headings:text-gray-900" style={{ color: colors.textPrimary }}>
             <ReactMarkdown>{text || " "}</ReactMarkdown>
           </div>
         ) : text}
