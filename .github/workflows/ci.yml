@@ -38,6 +38,11 @@ jobs:
           CLERK_JWKS_URL: "https://example.clerk.accounts.dev/.well-known/jwks.json"
           ENVIRONMENT: "test"
 
+      - name: Urgency classification eval (>=90% accuracy required)
+        run: python evals/eval_urgency.py --min-accuracy 0.90
+        env:
+          ANTHROPIC_API_KEY: "sk-ant-test-key"
+
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
         if: always()
