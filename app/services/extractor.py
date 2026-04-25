@@ -24,6 +24,8 @@ def _extract_pdf(path: Path) -> str:
             text = page.extract_text()
             if text:
                 pages.append(text)
+    if not pages:
+        raise ValueError("PDF contains no extractable text — may be a scanned image. Only digital PDFs are supported.")
     return "\n".join(pages)
 
 
