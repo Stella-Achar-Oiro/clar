@@ -71,4 +71,4 @@ def deidentify(text: str) -> tuple[str, list[dict], bool]:
 
     except Exception as exc:
         logger.error("deid_failed", error=str(exc))
-        return text, [], True
+        return "", [], True

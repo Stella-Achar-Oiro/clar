@@ -6,7 +6,7 @@ PATIENT_NAME = "John Smith"
 DOB = "01/01/1980"
 PHONE = "555-123-4567"
 EMAIL = "john.smith@example.com"
-NHS_NUMBER = "123 456 7890"
+NHS_NUMBER = "943 476 5919"
 MRN = "MRN: 12345678"
 SSN = "123-45-6789"
 
