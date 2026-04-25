@@ -3,15 +3,23 @@ Evaluation harness — runs full pipeline on fixtures and logs to LangSmith.
 Run manually: python -m tests.eval.eval_pipeline
 Not part of pytest suite (no test_ prefix on functions).
 """
-import os
 from pathlib import Path
+
 from app.agents.pipeline import run_pipeline
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 
 SCENARIOS = [
-    {"file": FIXTURES / "sample_cbc.txt", "expected_report_type": "lab", "expected_min_findings": 1},
-    {"file": FIXTURES / "sample_radiology.txt", "expected_report_type": "radiology", "expected_min_findings": 1},
+    {
+        "file": FIXTURES / "sample_cbc.txt",
+        "expected_report_type": "lab",
+        "expected_min_findings": 1,
+    },
+    {
+        "file": FIXTURES / "sample_radiology.txt",
+        "expected_report_type": "radiology",
+        "expected_min_findings": 1,
+    },
 ]
 
 

@@ -1558,7 +1558,7 @@ git commit -m "feat: LangGraph pipeline — 5-node sequential graph, integration
 **Files:**
 - Create: `app/services/session.py`
 
-- [ ] **Step 1: Write inline session test (add to `tests/unit/test_extractor.py` — no need for a separate file)**
+- [x] **Step 1: Write inline session test (add to `tests/unit/test_extractor.py` — no need for a separate file)**
 
 Actually, add a new file `tests/unit/test_session.py`:
 
@@ -1588,7 +1588,7 @@ def test_expired_key_returns_none():
     assert store.get("abc") is None
 ```
 
-- [ ] **Step 2: Run test — verify it fails**
+- [x] **Step 2: Run test — verify it fails**
 
 ```bash
 pytest tests/unit/test_session.py -v
@@ -1596,7 +1596,7 @@ pytest tests/unit/test_session.py -v
 
 Expected: `ModuleNotFoundError: No module named 'app.services.session'`
 
-- [ ] **Step 3: Create `app/services/session.py`**
+- [x] **Step 3: Create `app/services/session.py`**
 
 ```python
 from datetime import datetime, timedelta
@@ -1625,7 +1625,7 @@ class SessionStore:
             return data
 ```
 
-- [ ] **Step 4: Run tests — verify they pass**
+- [x] **Step 4: Run tests — verify they pass**
 
 ```bash
 pytest tests/unit/test_session.py -v
@@ -1633,7 +1633,7 @@ pytest tests/unit/test_session.py -v
 
 Expected: All 3 tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/unit/test_session.py app/services/session.py
