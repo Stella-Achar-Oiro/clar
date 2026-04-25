@@ -11,6 +11,8 @@ from app.services.llm import call_llm
 
 _RANGE_RE = re.compile(r"([\d.]+)\s*[-–]\s*([\d.]+)")
 _VALUE_RE = re.compile(r"([\d.]+)")
+_POSITIVE_RE = re.compile(r"\bpositive\b", re.IGNORECASE)
+_NEGATIVE_EXPECTED_RE = re.compile(r"\b(negative|not detected)\b", re.IGNORECASE)
 
 _URGENT_THRESHOLD = 0.50
 
@@ -29,8 +31,15 @@ def classify_numeric(value: float, low: float, high: float) -> tuple[str, str]:
 
 
 def _try_rules(finding: dict[str, Any]) -> tuple[str, str] | None:
-    range_match = _RANGE_RE.search(finding.get("reference_range", ""))
-    value_match = _VALUE_RE.search(finding.get("value", ""))
+    value = finding.get("value", "")
+    ref = finding.get("reference_range", "")
+
+    # Qualitative: POSITIVE result when negative is expected → urgent
+    if _POSITIVE_RE.search(value) and _NEGATIVE_EXPECTED_RE.search(ref):
+        return "urgent", "A positive result was detected where negative is expected."
+
+    range_match = _RANGE_RE.search(ref)
+    value_match = _VALUE_RE.search(value)
     if not range_match or not value_match:
         return None
     try:

@@ -1,51 +1,22 @@
 import { useState } from "react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { NavBar } from "@/components/shared/NavBar";
-import { Sidebar } from "@/components/results/Sidebar";
-import { UploadPanel } from "@/components/upload/UploadPanel";
-import { TrustBadges } from "@/components/upload/TrustBadges";
+import { Disclaimer } from "@/components/shared/Disclaimer";
 import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import { ErrorState } from "@/components/shared/ErrorState";
+import { Sidebar } from "@/components/results/Sidebar";
 import { FindingsList } from "@/components/results/FindingsList";
 import { VerdictBanner } from "@/components/results/VerdictBanner";
 import { QuestionList } from "@/components/results/QuestionList";
 import { ChatDrawer } from "@/components/results/ChatDrawer";
-import { uploadReport } from "@/lib/api";
-import { ReportResult, ViewType } from "@/lib/types";
-
-type AppState = "idle" | "uploading" | "error" | "results";
+import { UploadPanel } from "@/components/upload/UploadPanel";
+import { TrustBadges } from "@/components/upload/TrustBadges";
+import { useReportState } from "@/lib/useReportState";
 
 export default function IndexPage() {
-  const [appState, setAppState] = useState<AppState>("idle");
-  const [result, setResult] = useState<ReportResult | null>(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [step, setStep] = useState(0);
-  const [view, setView] = useState<ViewType>("findings");
+  const { appState, setAppState, result, errorMessage, step, view, setView, handleFile, handleNewReport } = useReportState();
   const [chatOpen, setChatOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  async function handleFile(file: File) {
-    setAppState("uploading");
-    setStep(0);
-    const timer = setInterval(() => setStep((s) => Math.min(s + 1, 4)), 1200);
-    try {
-      const data: ReportResult = await uploadReport(file);
-      clearInterval(timer);
-      setResult(data);
-      setView("findings");
-      setAppState("results");
-    } catch (err) {
-      clearInterval(timer);
-      setErrorMessage(err instanceof Error ? err.message : "Upload failed. Please try again.");
-      setAppState("error");
-    }
-  }
-
-  function handleNewReport() {
-    setResult(null);
-    setAppState("idle");
-    setStep(0);
-  }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#F5F7FA" }}>
@@ -99,30 +70,24 @@ export default function IndexPage() {
                 <LoadingScreen currentStep={step} />
               </div>
             )}
-
             {appState === "error" && (
               <div className="max-w-xl mx-auto px-4 py-16">
                 <ErrorState message={errorMessage} onRetry={() => setAppState("idle")} />
               </div>
             )}
-
             {appState === "results" && result && (
               <div className="p-6">
                 {view === "findings" && (
                   <>
                     <VerdictBanner verdict={result.verdict} />
-                    <h3 className="text-base font-semibold mb-4" style={{ color: "#0F172A" }}>
-                      All Findings
-                    </h3>
+                    <h3 className="text-base font-semibold mb-4" style={{ color: "#0F172A" }}>All Findings</h3>
                     <FindingsList findings={result.findings} />
                   </>
                 )}
                 {view === "urgency" && (
                   <>
                     <VerdictBanner verdict={result.verdict} />
-                    <h3 className="text-base font-semibold mb-4" style={{ color: "#0F172A" }}>
-                      Flagged Findings
-                    </h3>
+                    <h3 className="text-base font-semibold mb-4" style={{ color: "#0F172A" }}>Flagged Findings</h3>
                     <FindingsList findings={result.findings} filterUrgency />
                   </>
                 )}
@@ -131,11 +96,11 @@ export default function IndexPage() {
                   Processed in {result.processing_time_ms}ms &nbsp;&middot;&nbsp;{" "}
                   {result.deid_entities_removed} personal detail(s) removed
                 </div>
+                <Disclaimer />
               </div>
             )}
           </main>
         </div>
-
         {result && (
           <ChatDrawer
             reportId={result.report_id}

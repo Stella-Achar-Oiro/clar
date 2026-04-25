@@ -1,9 +1,8 @@
 """
 Urgency classification evaluation.
 
-Runs the flag_agent against a labelled fixture set and reports accuracy.
-Uses rules-based classify_numeric for numeric findings (no API calls needed)
-and records results to evals/results.json.
+Runs the flag_agent rules against a labelled fixture set and reports accuracy.
+Mirrors app/agents/flag_agent.py exactly so this runs without the full app stack.
 
 Usage:
     python -m evals.eval_urgency
@@ -12,14 +11,16 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Inline classify_numeric — mirrors app/agents/flag_agent.py exactly so
-# this eval runs without the full app stack (no API keys needed).
+# Mirrors app/agents/flag_agent.py — keep in sync when logic changes.
 # ---------------------------------------------------------------------------
 _URGENT_THRESHOLD = 0.50
+_POSITIVE_RE = re.compile(r"\bpositive\b", re.IGNORECASE)
+_NEGATIVE_EXPECTED_RE = re.compile(r"\b(negative|not detected)\b", re.IGNORECASE)
 
 
 def classify_numeric(value: float, low: float, high: float) -> tuple[str, str]:
@@ -34,8 +35,15 @@ def classify_numeric(value: float, low: float, high: float) -> tuple[str, str]:
     urgency = "urgent" if excess > _URGENT_THRESHOLD else "watch"
     return urgency, f"Value is above the normal range ({value} vs {low}–{high})."
 
+
+def classify_qualitative(value: str, reference_range: str) -> tuple[str, str] | None:
+    if _POSITIVE_RE.search(value) and _NEGATIVE_EXPECTED_RE.search(reference_range):
+        return "urgent", "A positive result was detected where negative is expected."
+    return None
+
+
 # ---------------------------------------------------------------------------
-# Labelled test cases
+# Labelled test cases — numeric
 # Each case: (name, value, low, high, expected_urgency, clinical_note)
 # ---------------------------------------------------------------------------
 NUMERIC_CASES: list[tuple[str, float, float, float, str, str]] = [
@@ -65,31 +73,58 @@ NUMERIC_CASES: list[tuple[str, float, float, float, str, str]] = [
     ("Creatinine critically elevated", 350.0, 60.0, 110.0, "urgent", "Severe renal impairment"),
 ]
 
+# ---------------------------------------------------------------------------
+# Qualitative test cases — (name, value_str, reference_range_str, expected, note)
+# ---------------------------------------------------------------------------
+QUALITATIVE_CASES: list[tuple[str, str, str, str, str]] = [
+    ("Malaria RDT positive", "POSITIVE (Pf)", "Negative expected", "urgent", "Active infection"),
+    ("Malaria RDT negative", "NEGATIVE", "Negative expected", None, "No match — falls to LLM"),
+    ("Blood film positive", "POSITIVE", "Not detected expected", "urgent", "Parasites seen"),
+    ("Culture positive", "POSITIVE", "Negative expected", "urgent", "Bacterial growth detected"),
+    ("Pregnancy test positive", "POSITIVE", "Negative expected", "urgent", "Positive where negative expected"),
+    ("HIV screen negative", "NEGATIVE", "Negative expected", None, "Normal — no POSITIVE match"),
+    ("Mixed case positive", "Positive", "negative result expected", "urgent", "Case-insensitive match"),
+]
+
 
 def run_eval(verbose: bool = False) -> dict:
     correct = 0
-    total = len(NUMERIC_CASES)
     failures: list[dict] = []
 
+    # Numeric cases
     for name, value, low, high, expected, note in NUMERIC_CASES:
-        predicted, reason = classify_numeric(value, low, high)
+        predicted, _ = classify_numeric(value, low, high)
         passed = predicted == expected
         if passed:
             correct += 1
         else:
             failures.append({
-                "case": name,
-                "value": value,
-                "range": f"{low}–{high}",
-                "expected": expected,
-                "predicted": predicted,
-                "reason": reason,
-                "note": note,
+                "case": name, "value": value, "range": f"{low}–{high}",
+                "expected": expected, "predicted": predicted, "note": note,
             })
         if verbose:
-            status = "PASS" if passed else "FAIL"
-            print(f"[{status}] {name}: expected={expected}, got={predicted}")
+            print(f"[{'PASS' if passed else 'FAIL'}] {name}: expected={expected}, got={predicted}")
 
+    # Qualitative cases — None expected means the rule returns None (falls to LLM), count as pass
+    for name, value_str, ref_str, expected, note in QUALITATIVE_CASES:
+        result = classify_qualitative(value_str, ref_str)
+        if expected is None:
+            passed = result is None
+            predicted = "None (LLM fallback)"
+        else:
+            passed = result is not None and result[0] == expected
+            predicted = result[0] if result else "None"
+        if passed:
+            correct += 1
+        else:
+            failures.append({
+                "case": name, "value": value_str, "range": ref_str,
+                "expected": expected, "predicted": predicted, "note": note,
+            })
+        if verbose:
+            print(f"[{'PASS' if passed else 'FAIL'}] {name}: expected={expected}, got={predicted}")
+
+    total = len(NUMERIC_CASES) + len(QUALITATIVE_CASES)
     accuracy = correct / total
     results = {
         "total": total,
