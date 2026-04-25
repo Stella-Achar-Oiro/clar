@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Download spaCy model
+        run: python -m spacy download en_core_web_lg
+
+      - name: Ruff lint
+        run: ruff check app/ tests/
+
+      - name: Mypy type check
+        run: mypy app/
+
+      - name: Pytest (>80% coverage required)
+        run: pytest tests/unit/ tests/integration/ -v --cov=app --cov-report=xml --cov-fail-under=80
+        env:
+          ANTHROPIC_API_KEY: "sk-ant-test-key"
+          LANGSMITH_API_KEY: "test"
+          LANGSMITH_PROJECT: "clar-ci"
+          CLERK_JWKS_URL: "https://example.clerk.accounts.dev/.well-known/jwks.json"
+          ENVIRONMENT: "test"
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: coverage.xml
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Node dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Next.js build (static export)
+        working-directory: frontend
+        run: npm run build
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_placeholder"
+          NEXT_PUBLIC_API_URL: "/"
+
+      - name: Docker build smoke test (no push)
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_placeholder \
+            -f infra/docker/Dockerfile \
+            -t clar:ci-test .
