@@ -1,6 +1,6 @@
 import uuid
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -26,12 +26,12 @@ app.include_router(metrics.router)
 
 
 @app.exception_handler(413)
-async def file_too_large(_: Request, exc: HTTPException) -> JSONResponse:
+async def file_too_large(_: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(status_code=413, content={"error": "File exceeds 10 MB limit"})
 
 
 @app.exception_handler(415)
-async def unsupported_media(_: Request, exc: HTTPException) -> JSONResponse:
+async def unsupported_media(_: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(status_code=415, content={"error": "Only PDF and plain text files are supported"})
 
 
