@@ -1,12 +1,8 @@
-import { useRouter } from "next/router";
-
 interface NavBarProps {
-  showNewReport?: boolean;
+  onNewReport?: () => void;
 }
 
-export function NavBar({ showNewReport = false }: NavBarProps) {
-  const router = useRouter();
-
+export function NavBar({ onNewReport }: NavBarProps) {
   return (
     <header
       style={{ backgroundColor: "#E05A00" }}
@@ -14,20 +10,15 @@ export function NavBar({ showNewReport = false }: NavBarProps) {
     >
       <div
         className="text-white text-xl font-bold tracking-tight cursor-pointer"
-        onClick={() => {
-          sessionStorage.removeItem("clar_result");
-          router.push("/");
-        }}
+        onClick={onNewReport}
+        style={{ cursor: onNewReport ? "pointer" : "default" }}
       >
         CLAR
       </div>
-      {showNewReport && (
+      {onNewReport && (
         <button
-          onClick={() => {
-            sessionStorage.removeItem("clar_result");
-            router.push("/");
-          }}
-          className="bg-white text-navy text-sm font-semibold px-4 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
+          onClick={onNewReport}
+          className="bg-white text-sm font-semibold px-4 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
           style={{ color: "#E05A00" }}
         >
           + New Report
