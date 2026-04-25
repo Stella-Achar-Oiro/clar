@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 from anthropic import Anthropic
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
@@ -49,7 +51,7 @@ def chat(request: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=500, detail="Chat is temporarily unavailable.")
 
 
-def _build_context(session: dict) -> str:
+def _build_context(session: dict[str, object]) -> str:
     return f"""Report type: {session['report_type']}
 
 Findings:
@@ -73,7 +75,7 @@ def chat_stream(request: ChatRequest) -> StreamingResponse:
 
     context = _build_context(session)
 
-    def generate():
+    def generate() -> Iterator[str]:
         try:
             with _client.messages.stream(
                 model="claude-sonnet-4-6",
