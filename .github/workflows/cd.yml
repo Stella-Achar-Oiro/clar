@@ -1,0 +1,112 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write  # Required for Workload Identity Federation
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---------- CI steps (repeat on main) ----------
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Download spaCy model
+        run: python -m spacy download en_core_web_lg
+
+      - name: Ruff + Mypy
+        run: |
+          ruff check app/ tests/
+          mypy app/
+
+      - name: Pytest
+        run: pytest tests/unit/ tests/integration/ -v --cov=app --cov-fail-under=80
+        env:
+          ANTHROPIC_API_KEY: "sk-ant-test-key"
+          LANGSMITH_API_KEY: "test"
+          LANGSMITH_PROJECT: "clar-ci"
+          CLERK_JWKS_URL: "https://example.clerk.accounts.dev/.well-known/jwks.json"
+          ENVIRONMENT: "test"
+
+      # ---------- GCP auth ----------
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+
+      # ---------- Build + push ----------
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/clar/clar:${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Build + push Docker image
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }} \
+            --build-arg NEXT_PUBLIC_API_URL=/ \
+            -f infra/docker/Dockerfile \
+            -t ${{ env.IMAGE_TAG }} .
+          docker push ${{ env.IMAGE_TAG }}
+
+      # ---------- Deploy ----------
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy clar \
+            --image ${{ env.IMAGE_TAG }} \
+            --platform managed \
+            --region ${{ secrets.GCP_REGION }} \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --quiet
+
+      - name: Get service URL
+        id: get_url
+        run: |
+          SERVICE_URL=$(gcloud run services describe clar \
+            --platform managed \
+            --region ${{ secrets.GCP_REGION }} \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --format "value(status.url)")
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
+
+      - name: Smoke test
+        run: |
+          sleep 5
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.SERVICE_URL }}/health)
+          if [ "$STATUS" != "200" ]; then
+            echo "Smoke test FAILED — /health returned $STATUS"
+            exit 1
+          fi
+          echo "Smoke test PASSED — ${{ env.SERVICE_URL }}/health returned 200"
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Service URL:** ${{ env.SERVICE_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Smoke test:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
