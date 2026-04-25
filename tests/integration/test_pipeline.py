@@ -58,5 +58,6 @@ def test_pipeline_aborts_on_empty_file(tmp_path):
 
     empty_file = tmp_path / "empty.txt"
     empty_file.write_text("")
-    result = run_pipeline(empty_file)
+    with patch("app.agents.deid_agent.deidentify", return_value=("", [], True)):
+        result = run_pipeline(empty_file)
     assert result["error"] is not None

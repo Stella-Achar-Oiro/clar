@@ -1,5 +1,6 @@
 from pathlib import Path
 from langgraph.graph import StateGraph, END
+from langgraph.graph.state import CompiledStateGraph
 from app.models.report import CLARState
 from app.agents.extract_agent import run_extract_agent
 from app.agents.deid_agent import run_deid_agent, deid_router
@@ -13,7 +14,7 @@ def _error_node(state: CLARState) -> CLARState:
     return state
 
 
-def _build_graph() -> StateGraph:
+def _build_graph() -> CompiledStateGraph:
     graph = StateGraph(CLARState)
 
     graph.add_node("deid_agent", run_deid_agent)
