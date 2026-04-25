@@ -1,6 +1,6 @@
 import { ReportResult, ChatResponse } from "./types";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
 export async function uploadReport(file: File): Promise<ReportResult> {
   const form = new FormData();
