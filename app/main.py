@@ -1,3 +1,4 @@
+import os
 import uuid
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -9,10 +10,16 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from app.api.routes import chat, health, metrics, upload
+from app.config import settings
 from app.observability.logging import configure_logging
 from app.services.llm import LLMTimeoutError
 
 configure_logging()
+
+if settings.langsmith_api_key:
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    os.environ["LANGCHAIN_API_KEY"] = settings.langsmith_api_key
+    os.environ["LANGCHAIN_PROJECT"] = settings.langsmith_project
 
 
 @asynccontextmanager

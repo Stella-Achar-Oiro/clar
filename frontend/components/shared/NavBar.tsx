@@ -14,13 +14,19 @@ export function NavBar({ showNewReport = false }: NavBarProps) {
     >
       <div
         className="text-white text-xl font-bold tracking-tight cursor-pointer"
-        onClick={() => router.push("/")}
+        onClick={() => {
+          sessionStorage.removeItem("clar_result");
+          router.push("/");
+        }}
       >
         CLAR
       </div>
       {showNewReport && (
         <button
-          onClick={() => router.push("/")}
+          onClick={() => {
+            sessionStorage.removeItem("clar_result");
+            router.push("/");
+          }}
           className="bg-white text-navy text-sm font-semibold px-4 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
           style={{ color: "#E05A00" }}
         >
