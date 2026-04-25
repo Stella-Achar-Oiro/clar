@@ -27,10 +27,12 @@ class SessionStore:
 from app.config import settings as _settings
 
 _shared_store: "SessionStore | None" = None
+_store_lock = Lock()
 
 
 def get_shared_store() -> "SessionStore":
     global _shared_store
-    if _shared_store is None:
-        _shared_store = SessionStore(ttl_minutes=_settings.report_session_ttl_minutes)
-    return _shared_store
+    with _store_lock:
+        if _shared_store is None:
+            _shared_store = SessionStore(ttl_minutes=_settings.report_session_ttl_minutes)
+        return _shared_store

@@ -39,8 +39,10 @@ async def upload_report(file: UploadFile = File(...)) -> ReportResult:
             tmp.write(content)
             tmp_path = Path(tmp.name)
 
-        state = run_pipeline(tmp_path)
-        tmp_path.unlink(missing_ok=True)
+        try:
+            state = run_pipeline(tmp_path)
+        finally:
+            tmp_path.unlink(missing_ok=True)
 
         if state.get("error") == "deid_failed":
             ERRORS_TOTAL.labels(error_type="deid_failed").inc()
