@@ -1,0 +1,58 @@
+{
+  "title": "CLAR Observability",
+  "uid": "clar-main",
+  "schemaVersion": 38,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request Rate",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "rate(clar_requests_total[5m])", "legendFormat": "req/s"}]
+    },
+    {
+      "id": 2,
+      "title": "Pipeline Duration p50",
+      "type": "stat",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.50, rate(clar_pipeline_duration_seconds_bucket[5m]))", "legendFormat": "p50 (s)"}]
+    },
+    {
+      "id": 3,
+      "title": "Pipeline Duration p95",
+      "type": "stat",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.95, rate(clar_pipeline_duration_seconds_bucket[5m]))", "legendFormat": "p95 (s)"}]
+    },
+    {
+      "id": 4,
+      "title": "Error Rate",
+      "type": "stat",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "rate(clar_errors_total[5m])", "legendFormat": "errors/s"}]
+    },
+    {
+      "id": 5,
+      "title": "Per-Agent Duration",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [{"expr": "histogram_quantile(0.95, rate(clar_agent_duration_seconds_bucket[5m])) by (agent_name)", "legendFormat": "{{agent_name}} p95"}]
+    },
+    {
+      "id": 6,
+      "title": "LLM Token Usage",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [{"expr": "rate(clar_llm_tokens_total[5m]) by (agent_name, direction)", "legendFormat": "{{agent_name}} {{direction}}"}]
+    },
+    {
+      "id": 7,
+      "title": "DeID Entities Removed",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 12, "w": 8, "h": 4},
+      "targets": [{"expr": "increase(clar_deid_entities_total[1h])", "legendFormat": "entities/hr"}]
+    }
+  ],
+  "time": {"from": "now-1h", "to": "now"},
+  "refresh": "15s"
+}
