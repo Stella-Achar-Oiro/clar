@@ -83,13 +83,13 @@ export function ChatDrawer({ reportId, open, onClose, starterQuestions }: ChatDr
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-50"
+      className="fixed inset-0 flex items-end sm:items-center justify-center z-50"
       style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="flex flex-col rounded-xl shadow-2xl overflow-hidden"
-        style={{ width: 680, maxHeight: "80vh", backgroundColor: colors.white, border: `1px solid ${colors.border}` }}
+        className="flex flex-col w-full rounded-t-xl sm:rounded-xl shadow-2xl overflow-hidden"
+        style={{ maxWidth: 680, height: "90vh", maxHeight: "90vh", backgroundColor: colors.white, border: `1px solid ${colors.border}` }}
       >
         <div
           className="flex items-center justify-between px-5 py-3 flex-shrink-0"

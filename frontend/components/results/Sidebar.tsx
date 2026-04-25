@@ -1,6 +1,6 @@
-import React from "react";
 import { ViewType, Verdict } from "@/lib/types";
 import { urgencyColors } from "@/styles/tokens";
+import { SidebarNav } from "./SidebarNav";
 
 interface SidebarProps {
   reportType?: string;
@@ -9,54 +9,15 @@ interface SidebarProps {
   onViewChange: (v: ViewType) => void;
   onAskClar: () => void;
   hasReport: boolean;
+  open: boolean;
+  onClose: () => void;
 }
 
-const NAV_ITEMS: { view: ViewType; label: string; icon: React.ReactElement }[] = [
-  {
-    view: "findings",
-    label: "Findings",
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M9 11l3 3L22 4" />
-        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-      </svg>
-    ),
-  },
-  {
-    view: "urgency",
-    label: "Urgency Summary",
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-    ),
-  },
-  {
-    view: "questions",
-    label: "Doctor Questions",
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-      </svg>
-    ),
-  },
-];
-
-export function Sidebar({
-  reportType,
-  verdict,
-  activeView,
-  onViewChange,
-  onAskClar,
-  hasReport,
-}: SidebarProps) {
+function SidebarContent({
+  reportType, verdict, activeView, onViewChange, onAskClar, hasReport, onClose,
+}: Omit<SidebarProps, "open">) {
   return (
-    <aside
-      className="flex flex-col"
-      style={{ width: 220, flexShrink: 0, backgroundColor: "#F5F7FA", borderRight: "1px solid #E0E0E0" }}
-    >
+    <div className="flex flex-col h-full" style={{ backgroundColor: "#F5F7FA" }}>
       {!hasReport ? (
         <div className="flex flex-col items-center justify-center flex-1 px-4 text-center">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="1.5" className="mb-3">
@@ -102,33 +63,11 @@ export function Sidebar({
             </div>
           )}
 
-          <nav style={{ padding: "0 0.5rem", flex: 1 }}>
-            <div
-              className="text-xs font-semibold uppercase tracking-widest px-2 mb-1"
-              style={{ color: "#6B7280" }}
-            >
-              View
-            </div>
-            {NAV_ITEMS.map(({ view, label, icon }) => (
-              <button
-                key={view}
-                onClick={() => onViewChange(view)}
-                className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm mb-0.5 font-medium transition-colors"
-                style={
-                  activeView === view
-                    ? { backgroundColor: "#E05A00", color: "#FFFFFF" }
-                    : { color: "#6B7280" }
-                }
-              >
-                {icon}
-                {label}
-              </button>
-            ))}
-          </nav>
+          <SidebarNav activeView={activeView} onViewChange={onViewChange} onClose={onClose} />
 
           <div style={{ padding: "1rem", borderTop: "1px solid #E0E0E0" }}>
             <button
-              onClick={onAskClar}
+              onClick={() => { onAskClar(); onClose(); }}
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold py-2.5 rounded-lg text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#E05A00" }}
             >
@@ -140,6 +79,33 @@ export function Sidebar({
           </div>
         </>
       )}
-    </aside>
+    </div>
+  );
+}
+
+export function Sidebar(props: SidebarProps) {
+  const { open, onClose, ...rest } = props;
+  return (
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+          onClick={onClose}
+        />
+      )}
+      <div
+        className="fixed top-0 left-0 h-full z-50 md:hidden transition-transform duration-200"
+        style={{ width: 260, transform: open ? "translateX(0)" : "translateX(-100%)", borderRight: "1px solid #E0E0E0" }}
+      >
+        <SidebarContent {...rest} onClose={onClose} />
+      </div>
+      <aside
+        className="hidden md:flex flex-col flex-shrink-0"
+        style={{ width: 220, borderRight: "1px solid #E0E0E0" }}
+      >
+        <SidebarContent {...rest} onClose={() => {}} />
+      </aside>
+    </>
   );
 }

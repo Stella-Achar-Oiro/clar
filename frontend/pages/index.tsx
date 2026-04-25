@@ -22,6 +22,7 @@ export default function IndexPage() {
   const [step, setStep] = useState(0);
   const [view, setView] = useState<ViewType>("findings");
   const [chatOpen, setChatOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   async function handleFile(file: File) {
     setAppState("uploading");
@@ -48,13 +49,17 @@ export default function IndexPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#F5F7FA" }}>
-      <NavBar onNewReport={appState === "results" ? handleNewReport : undefined} />
+      <NavBar
+        onNewReport={appState === "results" ? handleNewReport : undefined}
+        onMenuToggle={() => setSidebarOpen((o) => !o)}
+        menuOpen={sidebarOpen}
+      />
 
       <SignedOut>
-        <div className="flex flex-1 items-center justify-center">
+        <div className="flex flex-1 items-center justify-center px-4">
           <div
-            className="rounded-xl p-10 text-center"
-            style={{ backgroundColor: "#FFFFFF", border: "1px solid #E0E0E0", maxWidth: 420, width: "100%" }}
+            className="rounded-xl p-8 text-center w-full"
+            style={{ backgroundColor: "#FFFFFF", border: "1px solid #E0E0E0", maxWidth: 420 }}
           >
             <h1 className="text-2xl font-bold mb-2" style={{ color: "#E05A00" }}>
               Understand your medical report
@@ -84,11 +89,11 @@ export default function IndexPage() {
             onViewChange={setView}
             onAskClar={() => setChatOpen(true)}
             hasReport={appState === "results"}
+            open={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
           />
-
           <main className="flex-1 overflow-y-auto">
             {appState === "idle" && <UploadPanel onFile={handleFile} />}
-
             {appState === "uploading" && (
               <div className="flex items-center justify-center h-full min-h-96">
                 <LoadingScreen currentStep={step} />
@@ -96,7 +101,7 @@ export default function IndexPage() {
             )}
 
             {appState === "error" && (
-              <div className="max-w-xl mx-auto px-6 py-16">
+              <div className="max-w-xl mx-auto px-4 py-16">
                 <ErrorState message={errorMessage} onRetry={() => setAppState("idle")} />
               </div>
             )}
