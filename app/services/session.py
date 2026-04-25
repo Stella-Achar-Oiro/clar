@@ -22,3 +22,15 @@ class SessionStore:
                 del self._store[report_id]
                 return None
             return data
+
+
+from app.config import settings as _settings
+
+_shared_store: "SessionStore | None" = None
+
+
+def get_shared_store() -> "SessionStore":
+    global _shared_store
+    if _shared_store is None:
+        _shared_store = SessionStore(ttl_minutes=_settings.report_session_ttl_minutes)
+    return _shared_store

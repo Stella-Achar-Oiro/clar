@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from app.observability.logging import configure_logging
-from app.api.routes import health, metrics
+from app.api.routes import health, metrics, upload, chat
 from app.services.llm import LLMTimeoutError
 from loguru import logger
 
@@ -23,6 +23,8 @@ app = FastAPI(title="CLAR", version="1.0.0", lifespan=lifespan)
 
 app.include_router(health.router)
 app.include_router(metrics.router)
+app.include_router(upload.router)
+app.include_router(chat.router)
 
 
 @app.exception_handler(413)
