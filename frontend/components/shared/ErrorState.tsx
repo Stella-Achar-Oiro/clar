@@ -21,7 +21,7 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
         <button
           onClick={onRetry}
           className="px-4 py-2 bg-cblue text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors"
-          style={{ backgroundColor: "#2563EB" }}
+          style={{ backgroundColor: "#E05A00" }}
         >
           Try again
         </button>

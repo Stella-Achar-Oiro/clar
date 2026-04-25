@@ -9,7 +9,7 @@ export function NavBar({ showNewReport = false }: NavBarProps) {
 
   return (
     <header
-      style={{ backgroundColor: "#1B2A4A" }}
+      style={{ backgroundColor: "#E05A00" }}
       className="flex items-center justify-between px-6 py-3"
     >
       <div
@@ -22,7 +22,7 @@ export function NavBar({ showNewReport = false }: NavBarProps) {
         <button
           onClick={() => router.push("/")}
           className="bg-white text-navy text-sm font-semibold px-4 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
-          style={{ color: "#1B2A4A" }}
+          style={{ color: "#E05A00" }}
         >
           + New Report
         </button>

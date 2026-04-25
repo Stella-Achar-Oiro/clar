@@ -25,7 +25,7 @@ export function SampleButton({ onLoad }: SampleButtonProps) {
     <button
       onClick={handleClick}
       className="mt-4 text-sm font-medium underline underline-offset-2 hover:opacity-70 transition-opacity"
-      style={{ color: "#2563EB" }}
+      style={{ color: "#E05A00" }}
     >
       Try with a sample CBC report
     </button>
