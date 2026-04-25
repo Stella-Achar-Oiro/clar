@@ -26,7 +26,11 @@ export default function ResultsPage() {
       router.replace("/");
       return;
     }
-    setResult(JSON.parse(stored));
+    try {
+      setResult(JSON.parse(stored));
+    } catch {
+      router.replace("/");
+    }
   }, [isLoaded, isSignedIn, router]);
 
   if (!isLoaded || !result) {
