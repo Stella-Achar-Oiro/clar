@@ -74,7 +74,7 @@ export default function ResultsPage() {
           )}
 
           <div className="mt-6 text-xs" style={{ color: "#9CA3AF" }}>
-            Processed in {result.processing_time_ms}ms &nbsp;·&nbsp;{" "}
+            Processed in {result.processing_time_ms}ms &nbsp;&middot;&nbsp;{" "}
             {result.deid_entities_removed} personal detail(s) removed
           </div>
         </main>

@@ -24,7 +24,7 @@ export function FindingCard({ finding }: FindingCardProps) {
             {finding.name}
           </div>
           <div className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-            {finding.value} &nbsp;·&nbsp; Ref: {finding.reference_range}
+            {finding.value} &nbsp;&middot;&nbsp; Ref: {finding.reference_range}
           </div>
         </div>
         <span

@@ -44,7 +44,7 @@ export function UploadZone({ onFile, disabled = false }: UploadZoneProps) {
         Drop your medical report here
       </p>
       <p className="text-sm" style={{ color: "#6B7280" }}>
-        PDF or plain text · max 10 MB
+        PDF or plain text &middot; max 10 MB
       </p>
       <input
         ref={inputRef}
