@@ -16,19 +16,20 @@ export function FindingCard({ finding }: FindingCardProps) {
       style={{ border: `1px solid #E0E0E0`, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
     >
       <button
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
+        className="w-full flex items-start gap-3 px-4 py-3.5 text-left"
         onClick={() => setExpanded((v) => !v)}
       >
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm" style={{ color: "#0F172A" }}>
             {finding.name}
           </div>
-          <div className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-            {finding.value} &nbsp;&middot;&nbsp; Ref: {finding.reference_range}
+          <div className="text-xs mt-0.5 flex flex-wrap gap-x-1" style={{ color: "#6B7280" }}>
+            <span>{finding.value}</span>
+            <span>&middot; Ref: {finding.reference_range}</span>
           </div>
         </div>
         <span
-          className="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full tracking-wide"
+          className="flex-shrink-0 text-xs font-bold uppercase px-2.5 py-0.5 rounded-full tracking-wide"
           style={{ backgroundColor: palette.bg, color: palette.text }}
         >
           {finding.urgency}
