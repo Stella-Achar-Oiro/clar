@@ -2,22 +2,30 @@ from pathlib import Path
 
 import pdfplumber
 
+# Priority order matters: more specific types first to avoid false matches.
+# "findings:" and "impression:" removed from radiology — they appear in all report types.
 _REPORT_TYPE_KEYWORDS: dict[str, list[str]] = {
-    "radiology": [
-        "radiology", "x-ray", "xray", "mri", "ct scan",
-        "ultrasound", "imaging", "findings:", "impression:",
+    "discharge": [
+        "discharge summary", "discharge diagnosis", "discharge date",
+        "admission date", "discharged on", "plan on discharge",
+        "medications on discharge", "follow-up appointment",
     ],
     "pathology": [
-        "pathology", "biopsy", "histology", "specimen",
-        "microscopic", "gross description",
+        "pathology report", "histopathology", "biopsy", "histology",
+        "microscopic description", "gross description",
+        "tumour grade", "tumor grade", "surgical margins", "receptor status",
     ],
-    "discharge": [
-        "discharge summary", "discharged", "admission date",
-        "discharge date", "discharge diagnosis",
+    "radiology": [
+        "radiology", "x-ray", "xray", "mri", "ct scan", "ct of",
+        "ultrasound", "echocardiogram", "echo report", "pet scan",
+        "nuclear medicine", "doppler", "imaging report",
     ],
     "lab": [
-        "cbc", "blood panel", "haemoglobin", "hemoglobin",
-        "glucose", "creatinine", "laboratory", "lab results",
+        "cbc", "full blood count", "fbc", "blood panel",
+        "haemoglobin", "hemoglobin", "glucose", "creatinine",
+        "laboratory", "lab results", "lipid profile", "hba1c",
+        "thyroid function", "liver function", "renal function",
+        "urine culture", "blood culture", "egfr",
     ],
 }
 
@@ -44,12 +52,14 @@ def _extract_pdf(path: Path) -> str:
                     if any(cells):
                         parts.append(" | ".join(cells))
 
-            # Fall back to free-text extraction for pages with no tables
-            # (e.g. radiology impressions, narrative discharge summaries).
-            if not parts:
-                text = page.extract_text()
-                if text:
-                    parts.append(text)
+            # Also extract free text — discharge/radiology pages mix tables with narrative.
+            # deduplicate against table content by only adding if text adds new lines.
+            text = page.extract_text()
+            if text:
+                table_content = " ".join(parts)
+                for line in text.splitlines():
+                    if line.strip() and line.strip() not in table_content:
+                        parts.append(line)
 
             if parts:
                 pages.append("\n".join(parts))
