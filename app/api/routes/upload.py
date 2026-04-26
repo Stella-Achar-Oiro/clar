@@ -119,4 +119,4 @@ async def upload_report(file: UploadFile = File(...)) -> ReportResult:
     except Exception as exc:
         ERRORS_TOTAL.labels(error_type="pipeline_error").inc()
         logger.error("upload_failed", error=str(exc), request_id=request_id)
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail="Analysis failed. Please try again.")
