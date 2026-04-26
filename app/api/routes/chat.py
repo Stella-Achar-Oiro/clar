@@ -1,15 +1,13 @@
 from collections.abc import Iterator
 
-from anthropic import Anthropic
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from loguru import logger
 
-from app.config import settings
 from app.models.report import ChatRequest, ChatResponse
+from app.services.llm import _client as _llm_client  # shared client — has timeout + retry
 
 router = APIRouter(prefix="/api")
-_client = Anthropic(api_key=settings.anthropic_api_key)
 
 _CHAT_SYSTEM = (
     "You are CLAR, a medical report assistant. Answer questions about a patient's"
@@ -39,7 +37,7 @@ def _build_context(request: ChatRequest) -> str:
 def chat(request: ChatRequest) -> ChatResponse:
     context = _build_context(request)
     try:
-        response = _client.messages.create(
+        response = _llm_client.messages.create(
             model="claude-sonnet-4-6",
             system=_CHAT_SYSTEM,
             messages=[{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {request.question}"}],  # noqa: E501
@@ -60,7 +58,7 @@ def chat_stream(request: ChatRequest) -> StreamingResponse:
 
     def generate() -> Iterator[str]:
         try:
-            with _client.messages.stream(
+            with _llm_client.messages.stream(
                 model="claude-sonnet-4-6",
                 system=_CHAT_SYSTEM,
                 messages=[{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {request.question}"}],  # noqa: E501

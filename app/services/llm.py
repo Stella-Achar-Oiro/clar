@@ -89,5 +89,32 @@ def call_llm(
     if raw.startswith("```"):
         raw = raw.split("\n", 1)[-1]
         raw = raw.rsplit("```", 1)[0]
-    result: dict[str, Any] = json.loads(raw)
+    try:
+        result: dict[str, Any] = json.loads(raw)
+    except json.JSONDecodeError:
+        # Response was likely truncated — try to salvage a partial findings array
+        logger.warning("llm_json_truncated", agent=agent_name, raw_length=len(raw))
+        result = _repair_truncated_json(raw)
     return result
+
+
+def _repair_truncated_json(raw: str) -> dict[str, Any]:
+    """Best-effort recovery for truncated LLM JSON responses."""
+    # For findings responses: extract complete objects before the truncation point
+    import re
+    findings = re.findall(r'\{[^{}]*"name"[^{}]*\}', raw, re.DOTALL)
+    if findings:
+        complete = []
+        for f in findings:
+            try:
+                complete.append(json.loads(f))
+            except json.JSONDecodeError:
+                pass
+        if complete:
+            return {"findings": complete}
+    # For other shapes (urgency, questions): return safe empty defaults
+    if '"urgency"' in raw:
+        return {"urgency": "watch", "urgency_reason": "Could not fully parse response."}
+    if '"questions"' in raw:
+        return {"questions": []}
+    return {}

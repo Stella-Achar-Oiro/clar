@@ -30,7 +30,7 @@ def test_chat_returns_answer(client):
     mock_response = MagicMock()
     mock_response.content = [MagicMock(text="Your haemoglobin is slightly low.")]
 
-    with patch("app.api.routes.chat._client") as mock_client:
+    with patch("app.api.routes.chat._llm_client") as mock_client:
         mock_client.messages.create.return_value = mock_response
         response = client.post("/api/chat", json=CHAT_PAYLOAD)
 
@@ -39,7 +39,7 @@ def test_chat_returns_answer(client):
 
 
 def test_chat_anthropic_error_returns_500(client):
-    with patch("app.api.routes.chat._client") as mock_client:
+    with patch("app.api.routes.chat._llm_client") as mock_client:
         mock_client.messages.create.side_effect = RuntimeError("API error")
         response = client.post("/api/chat", json=CHAT_PAYLOAD)
 
@@ -50,7 +50,7 @@ def test_chat_includes_context_in_request(client):
     mock_response = MagicMock()
     mock_response.content = [MagicMock(text="Answer about the finding.")]
 
-    with patch("app.api.routes.chat._client") as mock_client:
+    with patch("app.api.routes.chat._llm_client") as mock_client:
         mock_client.messages.create.return_value = mock_response
         client.post("/api/chat", json=CHAT_PAYLOAD)
 
@@ -66,7 +66,7 @@ def test_chat_empty_findings_still_responds(client):
     mock_response.content = [MagicMock(text="No findings were provided.")]
 
     payload = {**CHAT_PAYLOAD, "findings": [], "questions": []}
-    with patch("app.api.routes.chat._client") as mock_client:
+    with patch("app.api.routes.chat._llm_client") as mock_client:
         mock_client.messages.create.return_value = mock_response
         response = client.post("/api/chat", json=payload)
 
