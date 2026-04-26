@@ -21,7 +21,7 @@ DISCHARGE FINDINGS: For discharge diagnoses and medications:
 - Follow-up appointments → "normal" (routine post-discharge care)
 
 PATHOLOGY FINDINGS: For biopsy and histology results:
-- Positive cancer finding (tumour present, receptor status positive when negative expected) → "urgent"
+- Cancer confirmed, or receptor status positive when negative expected → "urgent"
 - Tumour grade 3 → "urgent"; grade 2 → "watch"; grade 1 → "watch"
 - Clear surgical margins → "normal"; involved or close margins → "urgent"
 
