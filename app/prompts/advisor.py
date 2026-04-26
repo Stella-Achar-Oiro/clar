@@ -6,6 +6,11 @@ The questions must be:
 - Specific to the actual values and findings in the report (not generic)
 - Written in plain English that a patient would use
 - Focused on understanding and next steps
+- Appropriate for the report type:
+  - Lab reports: ask about specific values, causes, treatment, lifestyle changes
+  - Radiology reports: ask about what the finding means, next steps, follow-up imaging
+  - Discharge summaries: ask about medications, warning signs, recovery timeline, follow-up
+  - Pathology reports: ask about what the result means, treatment options, prognosis, next steps
 - Numbered 1-5
 
 Return a JSON object with a "questions" array of exactly 5 strings.
@@ -25,4 +30,4 @@ Flagged findings:
 {findings_text}
 
 The questions should be specific to these values and help the patient understand their results
-and plan next steps."""
+and plan next steps. Tailor the questions to the {report_type} report type."""
