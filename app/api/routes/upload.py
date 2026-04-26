@@ -1,3 +1,4 @@
+import asyncio
 import tempfile
 import time
 import uuid
@@ -47,7 +48,8 @@ async def upload_report(file: UploadFile = File(...)) -> ReportResult:
             tmp_path = Path(tmp.name)
 
         try:
-            state = run_pipeline(tmp_path)
+            loop = asyncio.get_event_loop()
+            state = await loop.run_in_executor(None, run_pipeline, tmp_path)
         finally:
             tmp_path.unlink(missing_ok=True)
 
