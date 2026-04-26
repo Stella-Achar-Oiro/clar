@@ -1,4 +1,4 @@
-"""Few-shot example responses for the explain agent, split out to keep explain.py under 150 lines."""
+"""Few-shot example responses for the explain agent."""
 
 _HAEMO_EXPLANATION = (
     "Your haemoglobin is slightly below the normal range. "
