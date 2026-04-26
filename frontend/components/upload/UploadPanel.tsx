@@ -1,5 +1,5 @@
 import { UploadZone } from "./UploadZone";
-import { SampleButton } from "./SampleButton";
+import { SampleReports } from "./SampleReports";
 import { TrustBadges } from "./TrustBadges";
 
 interface UploadPanelProps {
@@ -19,9 +19,7 @@ export function UploadPanel({ onFile }: UploadPanelProps) {
         </p>
       </div>
       <UploadZone onFile={onFile} />
-      <div className="text-center">
-        <SampleButton onLoad={onFile} />
-      </div>
+      <SampleReports onLoad={onFile} />
       <TrustBadges />
     </div>
   );

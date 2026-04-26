@@ -1,0 +1,37 @@
+Histopathology Report
+Patient: [REDACTED]
+Date of Birth: [REDACTED]
+Specimen ID: PATH-2026-0042
+Date Received: [DATE]
+
+CLINICAL INFORMATION:
+Right breast lump, query carcinoma. Core needle biopsy.
+
+MACROSCOPIC DESCRIPTION:
+Three cores of pale tan tissue, each approximately 15mm in length.
+
+MICROSCOPIC DESCRIPTION:
+Sections show invasive ductal carcinoma, no special type (NST).
+Tumour cells are arranged in nests and cords within a desmoplastic stroma.
+Nuclear pleomorphism is moderate. Mitotic count: 8 per 10 high-power fields.
+No lymphovascular invasion identified. No ductal carcinoma in situ (DCIS) component seen.
+
+IMMUNOHISTOCHEMISTRY:
+ER (Oestrogen Receptor): POSITIVE (Allred score 7/8, 90% of cells)
+PR (Progesterone Receptor): POSITIVE (Allred score 6/8, 70% of cells)
+HER2: NEGATIVE (IHC 1+)
+Ki-67 Proliferation Index: 22%
+
+TUMOUR GRADE (Nottingham):
+Tubule formation: 3/3
+Nuclear pleomorphism: 2/3
+Mitotic count: 2/3
+Total Grade: 7/9 — Grade 2 (Intermediate)
+
+SURGICAL MARGINS:
+Margins clear. Minimum clearance: 3.2mm (posterior margin).
+
+CONCLUSION:
+Invasive ductal carcinoma, Grade 2.
+ER positive, PR positive, HER2 negative (Luminal B-like subtype).
+Margins clear (>3mm).
