@@ -16,7 +16,7 @@ def run_explain_agent(state: CLARState) -> CLARState:
             system=SYSTEM_PROMPT,
             messages=messages,
             temperature=0.1,
-            max_tokens=2000,
+            max_tokens=8192,
             agent_name="explain",
         )
         explanations = result.get("findings", [])
