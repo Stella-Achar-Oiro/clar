@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLAR — Technical Overview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "IBM Plex Mono", "Fira Code", "Cascadia Code", monospace;
+      background: #0f1117;
+      color: #c9d1d9;
+      line-height: 1.7;
+      padding: 0;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .layout { display: flex; min-height: 100vh; }
+
+    nav {
+      width: 240px;
+      flex-shrink: 0;
+      background: #161b22;
+      border-right: 1px solid #21262d;
+      padding: 2rem 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    nav .logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #e05a00;
+      padding: 0 1.5rem 1.5rem;
+      border-bottom: 1px solid #21262d;
+      margin-bottom: 1rem;
+    }
+    nav .logo span { display: block; font-size: 0.65rem; color: #8b949e; font-weight: 400; margin-top: 2px; }
+
+    nav a {
+      display: block;
+      padding: 0.35rem 1.5rem;
+      color: #8b949e;
+      text-decoration: none;
+      font-size: 0.75rem;
+      transition: color 0.15s;
+    }
+    nav a:hover { color: #e6edf3; }
+    nav a.section { color: #e6edf3; font-weight: 600; margin-top: 1rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; pointer-events: none; }
+
+    main {
+      flex: 1;
+      padding: 3rem 4rem;
+      max-width: 960px;
+    }
+
+    /* ── Typography ─────────────────────────────────────────── */
+    h1 { font-size: 1.9rem; color: #e6edf3; margin-bottom: 0.4rem; }
+    h2 { font-size: 1.25rem; color: #e6edf3; margin: 3rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid #21262d; }
+    h3 { font-size: 0.95rem; color: #e05a00; margin: 1.75rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    p  { margin-bottom: 0.9rem; font-size: 0.85rem; color: #8b949e; }
+    p strong { color: #c9d1d9; }
+
+    .subtitle { color: #8b949e; font-size: 0.8rem; margin-bottom: 2rem; }
+
+    /* ── Code ───────────────────────────────────────────────── */
+    pre {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      margin: 0.75rem 0 1.25rem;
+      color: #c9d1d9;
+    }
+    code { font-family: inherit; }
+    .kw  { color: #ff7b72; }   /* keyword */
+    .fn  { color: #d2a8ff; }   /* function / class */
+    .st  { color: #a5d6ff; }   /* string */
+    .cm  { color: #8b949e; }   /* comment */
+    .nu  { color: #79c0ff; }   /* number/const */
+    .ty  { color: #ffa657; }   /* type */
+
+    /* ── Inline code ─────────────────────────────────────────── */
+    ic { display: inline; background: #21262d; border-radius: 3px; padding: 0.1em 0.4em; font-size: 0.8em; color: #a5d6ff; }
+
+    /* ── Pipeline diagram ────────────────────────────────────── */
+    .pipeline {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin: 1.25rem 0;
+      overflow-x: auto;
+    }
+    .pipe-node {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      min-width: 130px;
+      font-size: 0.72rem;
+    }
+    .pipe-node .num  { color: #e05a00; font-weight: 700; font-size: 0.65rem; margin-bottom: 0.2rem; }
+    .pipe-node .name { color: #e6edf3; font-weight: 600; }
+    .pipe-node .sub  { color: #8b949e; font-size: 0.65rem; margin-top: 0.2rem; }
+    .pipe-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 0.4rem;
+      color: #e05a00;
+      font-size: 1rem;
+    }
+    .pipe-cond {
+      border-color: #e05a00;
+    }
+
+    /* ── Tables ─────────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin: 0.75rem 0 1.25rem; }
+    th { background: #161b22; color: #e6edf3; text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid #30363d; font-weight: 600; }
+    td { padding: 0.45rem 0.75rem; border-bottom: 1px solid #21262d; color: #8b949e; vertical-align: top; }
+    td strong { color: #c9d1d9; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Badges ─────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 0.15em 0.55em;
+      font-size: 0.68rem;
+      font-weight: 600;
+      margin-right: 0.3rem;
+    }
+    .badge-urgent { background: #3d1b1b; color: #ff7b72; }
+    .badge-watch  { background: #2d2200; color: #ffa657; }
+    .badge-normal { background: #112d22; color: #56d364; }
+    .badge-blue   { background: #162032; color: #79c0ff; }
+
+    /* ── Callouts ────────────────────────────────────────────── */
+    .callout {
+      border-left: 3px solid #e05a00;
+      background: #161b22;
+      padding: 0.75rem 1rem;
+      border-radius: 0 6px 6px 0;
+      margin: 0.75rem 0 1.25rem;
+      font-size: 0.8rem;
+      color: #8b949e;
+    }
+    .callout strong { color: #e05a00; }
+
+    /* ── Section anchor ─────────────────────────────────────── */
+    .anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+
+    /* ── Flow steps ─────────────────────────────────────────── */
+    .steps { counter-reset: step; }
+    .step  {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      align-items: flex-start;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      background: #e05a00;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.1rem;
+    }
+    .step p { margin: 0; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar nav ──────────────────────────────────────── -->
+  <nav>
+    <div class="logo">CLAR<span>Technical Overview</span></div>
+
+    <a class="section" href="#">Overview</a>
+    <a href="#what">What it does</a>
+    <a href="#stack">Stack</a>
+
+    <a class="section" href="#">Request lifecycle</a>
+    <a href="#upload">POST /api/upload</a>
+    <a href="#pipeline">Pipeline walkthrough</a>
+    <a href="#chat">POST /api/chat</a>
+
+    <a class="section" href="#">Agents</a>
+    <a href="#extract">1 · ExtractAgent</a>
+    <a href="#deid">2 · DeIDAgent</a>
+    <a href="#explain">3 · ExplainAgent</a>
+    <a href="#flag">4 · FlagAgent</a>
+    <a href="#advisor">5 · AdvisorAgent</a>
+
+    <a class="section" href="#">Services</a>
+    <a href="#llm-svc">LLM service</a>
+    <a href="#deid-svc">De-identification</a>
+    <a href="#session">Session store</a>
+
+    <a class="section" href="#">Infra & ops</a>
+    <a href="#api">API contracts</a>
+    <a href="#observability">Observability</a>
+    <a href="#ci">CI / CD</a>
+    <a href="#errors">Error handling</a>
+    <a href="#data-flow">Data flow summary</a>
+  </nav>
+
+  <!-- ── Main content ─────────────────────────────────────── -->
+  <main>
+
+    <h1>CLAR — How it works</h1>
+    <p class="subtitle">End-to-end technical walkthrough · Last updated 2026-04-27</p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="what"></span>
+    <h2>What CLAR does</h2>
+    <p>
+      CLAR accepts a medical report (PDF or plain text), runs it through a
+      <strong>5-agent LangGraph pipeline</strong>, and returns structured
+      plain-English findings with urgency flags and doctor questions.
+      PII is stripped <em>before</em> any LLM call. Nothing is persisted to disk.
+    </p>
+    <p>
+      Supported report types: <strong>lab</strong>, <strong>radiology</strong>,
+      <strong>discharge summary</strong>, <strong>pathology</strong>.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="stack"></span>
+    <h2>Stack at a glance</h2>
+    <table>
+      <tr><th>Layer</th><th>Technology</th><th>Why</th></tr>
+      <tr><td><strong>API</strong></td><td>FastAPI (async)</td><td>Async-native; event loop kept free via <ic>run_in_executor</ic></td></tr>
+      <tr><td><strong>Agent orchestration</strong></td><td>LangGraph StateGraph</td><td>Sequential graph with conditional edge on DeID failure; auto-traced by LangSmith</td></tr>
+      <tr><td><strong>LLM</strong></td><td>Claude Sonnet 4.6 (Anthropic)</td><td>Specified by capstone rubric; JSON output, low temperature</td></tr>
+      <tr><td><strong>De-identification</strong></td><td>Microsoft Presidio</td><td>Runs before every LLM call; pipeline aborts on failure</td></tr>
+      <tr><td><strong>PDF extraction</strong></td><td>pdfplumber</td><td>Preserves table structure; digital PDFs only (no OCR)</td></tr>
+      <tr><td><strong>Frontend</strong></td><td>Next.js 14 · TypeScript · Tailwind</td><td>Static export served by FastAPI — single container</td></tr>
+      <tr><td><strong>Auth</strong></td><td>Clerk <ic>@clerk/nextjs@6.x</ic></td><td>Pinned to 6.x (v7 removed SignedIn/SignedOut components)</td></tr>
+      <tr><td><strong>Tracing</strong></td><td>LangSmith</td><td>Native LangGraph integration; zero config</td></tr>
+      <tr><td><strong>Metrics</strong></td><td>Prometheus + Grafana</td><td>Exposed at <ic>/metrics</ic>; pre-provisioned docker-compose dashboard</td></tr>
+      <tr><td><strong>Logging</strong></td><td>Loguru JSON sink</td><td>Structured; never logs <ic>raw_text</ic> or <ic>deid_text</ic></td></tr>
+      <tr><td><strong>Deployment</strong></td><td>GCP Cloud Run + Terraform</td><td>Scales to zero; minScale=1 during demo to avoid cold-start</td></tr>
+      <tr><td><strong>CI/CD</strong></td><td>GitHub Actions</td><td>ci.yml (lint+test every PR) + cd.yml (build+deploy on merge)</td></tr>
+    </table>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="upload"></span>
+    <h2>POST /api/upload — request lifecycle</h2>
+
+    <p>
+      Entry point: <ic>app/api/routes/upload.py</ic>.
+      The route is <ic>async</ic> but the pipeline is CPU+IO-bound,
+      so it is offloaded to a thread pool to keep the event loop free
+      (prevents Cloud Run liveness probe timeouts).
+    </p>
+
+    <div class="steps">
+      <div class="step"><p>Client sends <ic>multipart/form-data</ic> with field <ic>file</ic> (.pdf or .txt, max 10 MB).</p></div>
+      <div class="step"><p>Route validates extension (<ic>.pdf</ic> / <ic>.txt</ic>) and file size. Returns 415 or 413 on failure.</p></div>
+      <div class="step"><p>File is written to a temp file; <ic>run_pipeline(tmp_path)</ic> is called via <ic>loop.run_in_executor(None, ...)</ic>. Temp file is deleted in the <ic>finally</ic> block whether or not the pipeline succeeds.</p></div>
+      <div class="step"><p>Pipeline result (<ic>CLARState</ic>) is inspected. If <ic>error == "deid_failed"</ic> → 422. Any other error → 500.</p></div>
+      <div class="step"><p>Findings are assembled into <ic>ReportResult</ic>. A <ic>Verdict</ic> is computed (urgent &gt; watch &gt; normal) based on finding urgency counts.</p></div>
+      <div class="step"><p>Session is saved in the in-memory store keyed by <ic>report_id</ic> (UUID v4) with a 30-minute TTL.</p></div>
+      <div class="step"><p>Prometheus metrics are incremented: <ic>REQUESTS_TOTAL</ic>, <ic>PIPELINE_DURATION</ic>, <ic>DEID_ENTITIES_TOTAL</ic>.</p></div>
+      <div class="step"><p>200 response with full <ic>ReportResult</ic> JSON returned to client.</p></div>
+    </div>
+
+    <pre><code><span class="cm"># upload.py — key snippet</span>
+<span class="kw">loop</span> = asyncio.get_event_loop()
+state = <span class="kw">await</span> loop.run_in_executor(<span class="nu">None</span>, run_pipeline, tmp_path)
+
+<span class="kw">if</span> state.get(<span class="st">"error"</span>) == <span class="st">"deid_failed"</span>:
+    <span class="kw">raise</span> HTTPException(status_code=<span class="nu">422</span>, detail=<span class="st">"Could not safely process this document."</span>)</code></pre>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="pipeline"></span>
+    <h2>Pipeline walkthrough</h2>
+
+    <p>
+      <ic>app/agents/pipeline.py</ic> builds a <ic>LangGraph StateGraph</ic> once at import
+      time and reuses it for every request. Extract runs <em>outside</em> the graph
+      because it needs the file path argument that LangGraph doesn't support.
+    </p>
+
+    <div class="pipeline">
+      <div class="pipe-node">
+        <div class="num">FILE IN</div>
+        <div class="name">ExtractAgent</div>
+        <div class="sub">pdfplumber / txt<br>+ type detection</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node pipe-cond">
+        <div class="num">NODE 1</div>
+        <div class="name">DeIDAgent</div>
+        <div class="sub">Presidio<br>conditional edge</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node">
+        <div class="num">NODE 2</div>
+        <div class="name">ExplainAgent</div>
+        <div class="sub">Claude · JSON<br>few-shot prompt</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node">
+        <div class="num">NODE 3</div>
+        <div class="name">FlagAgent</div>
+        <div class="sub">rules-first<br>LLM fallback</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node">
+        <div class="num">NODE 4</div>
+        <div class="name">AdvisorAgent</div>
+        <div class="sub">Claude · 5 Qs<br>temp 0.4</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node">
+        <div class="num">OUT</div>
+        <div class="name">CLARState</div>
+        <div class="sub">flagged findings<br>+ questions</div>
+      </div>
+    </div>
+
+    <p>
+      The graph has one <strong>conditional edge</strong>: after DeIDAgent,
+      <ic>deid_router()</ic> routes to <ic>error_node</ic> if de-identification
+      failed, or to <ic>explain_agent</ic> if clean.
+      All other edges are fixed sequential (<ic>explain → flag → advisor → END</ic>).
+    </p>
+
+    <pre><code><span class="cm"># pipeline.py — graph wiring</span>
+graph.set_entry_point(<span class="st">"deid_agent"</span>)
+graph.add_conditional_edges(
+    <span class="st">"deid_agent"</span>, deid_router,
+    {<span class="st">"explain_agent"</span>: <span class="st">"explain_agent"</span>, <span class="st">"error_node"</span>: <span class="st">"error_node"</span>},
+)
+graph.add_edge(<span class="st">"explain_agent"</span>, <span class="st">"flag_agent"</span>)
+graph.add_edge(<span class="st">"flag_agent"</span>, <span class="st">"advisor_agent"</span>)
+graph.add_edge(<span class="st">"advisor_agent"</span>, END)</code></pre>
+
+    <p>
+      <strong>Shared state</strong> — every agent receives the full <ic>CLARState</ic>
+      TypedDict and returns a new dict merging its changes with <ic>{**state, ...}</ic>:
+    </p>
+
+    <pre><code><span class="kw">class</span> <span class="fn">CLARState</span>(TypedDict):
+    raw_text:      <span class="ty">str</span>          <span class="cm"># from ExtractAgent</span>
+    deid_text:     <span class="ty">str</span>          <span class="cm"># from DeIDAgent</span>
+    report_type:   <span class="ty">str</span>          <span class="cm"># lab | radiology | pathology | discharge</span>
+    findings:      <span class="ty">list[dict]</span>   <span class="cm"># from ExplainAgent</span>
+    explanations:  <span class="ty">list[dict]</span>   <span class="cm"># from ExplainAgent (+ plain_explanation)</span>
+    flagged:       <span class="ty">list[dict]</span>   <span class="cm"># from FlagAgent (+ urgency, urgency_reason)</span>
+    questions:     <span class="ty">list[str]</span>    <span class="cm"># from AdvisorAgent (exactly 5)</span>
+    deid_entities: <span class="ty">list[dict]</span>   <span class="cm"># entity type + count for audit log</span>
+    error:         <span class="ty">str | None</span></code></pre>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="chat"></span>
+    <h2>POST /api/chat — follow-up questions</h2>
+
+    <p>
+      <ic>app/api/routes/chat.py</ic>. Stateless by design — the client passes
+      findings and questions in the request body so no server-side session lookup
+      is required. The in-memory session store is used only to validate <ic>report_id</ic>
+      for logging purposes.
+    </p>
+
+    <pre><code><span class="cm"># chat.py — system prompt (abridged)</span>
+_CHAT_SYSTEM = (
+    <span class="st">"You are CLAR, a medical report assistant. Answer questions about a patient's"</span>
+    <span class="st">" de-identified medical report findings. Be clear, helpful, and non-alarmist."</span>
+    <span class="st">" Do not diagnose. Suggest consulting their doctor for medical decisions."</span>
+    <span class="st">" FORMATTING RULES: No emojis. No markdown — write in plain prose only."</span>
+    <span class="st">" Do not use asterisks, bold, bullet lists, or any markdown syntax."</span>
+)</code></pre>
+
+    <p>
+      The route also exposes <ic>/api/chat/stream</ic> — same logic but uses
+      <ic>client.messages.stream()</ic> and yields <ic>text/event-stream</ic>
+      SSE chunks so the UI can render the answer token-by-token.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="extract"></span>
+    <h2>Agent 1 — ExtractAgent</h2>
+    <p>File: <ic>app/agents/extract_agent.py</ic> · <ic>app/services/extractor.py</ic></p>
+
+    <p>
+      Runs <em>before</em> the LangGraph graph (needs the file path).
+      Two responsibilities: extract raw text and detect report type.
+    </p>
+
+    <h3>PDF extraction</h3>
+    <p>
+      pdfplumber opens the file. For each page, tables are extracted first
+      (pipe-separated rows preserve column structure). Free-text lines are then
+      appended, deduplicated against table content, so narrative sections in
+      discharge/radiology reports aren't lost.
+    </p>
+    <pre><code><span class="kw">for</span> table <span class="kw">in</span> page.extract_tables():
+    <span class="kw">for</span> row <span class="kw">in</span> table:
+        cells = [c.replace(<span class="st">"\n"</span>, <span class="st">" "</span>).strip() <span class="kw">if</span> c <span class="kw">else</span> <span class="st">""</span> <span class="kw">for</span> c <span class="kw">in</span> row]
+        parts.append(<span class="st">" | "</span>.join(cells))
+
+text = page.extract_text()
+<span class="kw">if</span> text:
+    table_content = <span class="st">" "</span>.join(parts)
+    <span class="kw">for</span> line <span class="kw">in</span> text.splitlines():
+        <span class="kw">if</span> line.strip() <span class="kw">and</span> line.strip() <span class="kw">not in</span> table_content:
+            parts.append(line)</code></pre>
+
+    <h3>Report type detection</h3>
+    <p>
+      Keyword dict ordered by specificity (discharge → pathology → radiology → lab).
+      First match wins. The ordering prevents generic keywords from shadowing
+      specific ones — e.g. <ic>"findings:"</ic> was removed from radiology
+      because it appears in every report type.
+    </p>
+    <pre><code>_REPORT_TYPE_KEYWORDS = {
+    <span class="st">"discharge"</span>: [<span class="st">"discharge summary"</span>, <span class="st">"discharge diagnosis"</span>, ...],
+    <span class="st">"pathology"</span>: [<span class="st">"pathology report"</span>, <span class="st">"histopathology"</span>, <span class="st">"biopsy"</span>, ...],
+    <span class="st">"radiology"</span>: [<span class="st">"radiology"</span>, <span class="st">"x-ray"</span>, <span class="st">"mri"</span>, <span class="st">"ct scan"</span>, ...],
+    <span class="st">"lab"</span>:       [<span class="st">"cbc"</span>, <span class="st">"full blood count"</span>, <span class="st">"haemoglobin"</span>, ...],
+}</code></pre>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="deid"></span>
+    <h2>Agent 2 — DeIDAgent (safety gate)</h2>
+    <p>File: <ic>app/agents/deid_agent.py</ic> · <ic>app/services/deid.py</ic></p>
+
+    <div class="callout">
+      <strong>Critical safety gate.</strong> If de-identification fails or produces empty text,
+      the pipeline routes to <ic>error_node</ic> and the upload returns 422.
+      PII never reaches the LLM under any circumstances.
+    </div>
+
+    <p>
+      Uses <strong>Microsoft Presidio</strong> (<ic>AnalyzerEngine</ic> + <ic>AnonymizerEngine</ic>).
+      Two custom recognisers are added on top of the built-in set:
+    </p>
+    <table>
+      <tr><th>Recogniser</th><th>Pattern</th><th>Replacement</th></tr>
+      <tr><td>MRN</td><td><ic>MRN[\s:-]{0,2}\d{6,10}</ic></td><td><ic>[MEDICAL_ID]</ic></td></tr>
+      <tr><td>US SSN</td><td><ic>\b\d{3}-\d{2}-\d{4}\b</ic></td><td><ic>[MEDICAL_ID]</ic></td></tr>
+    </table>
+    <p>Built-in entities detected: PERSON → <ic>[PATIENT]</ic>, DATE_TIME → <ic>[DATE]</ic>, LOCATION → <ic>[ADDRESS]</ic>, PHONE_NUMBER → <ic>[PHONE]</ic>, EMAIL_ADDRESS → <ic>[EMAIL]</ic>, UK_NHS / MEDICAL_LICENSE → <ic>[MEDICAL_ID]</ic>.</p>
+    <p>Every removed entity is logged as a structured warning (type, character offsets, confidence score) — audit trail without logging the actual PII value.</p>
+
+    <pre><code><span class="cm"># deid_agent.py — conditional router</span>
+<span class="kw">def</span> <span class="fn">deid_router</span>(state: <span class="ty">CLARState</span>) -> <span class="ty">str</span>:
+    <span class="kw">if</span> state.get(<span class="st">"error"</span>) == <span class="st">"deid_failed"</span>:
+        <span class="kw">return</span> <span class="st">"error_node"</span>
+    <span class="kw">return</span> <span class="st">"explain_agent"</span></code></pre>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="explain"></span>
+    <h2>Agent 3 — ExplainAgent</h2>
+    <p>File: <ic>app/agents/explain_agent.py</ic> · <ic>app/prompts/explain.py</ic> · <ic>app/prompts/explain_examples.py</ic></p>
+
+    <p>
+      Sends <ic>deid_text</ic> + <ic>report_type</ic> to Claude.
+      Returns structured JSON: one object per finding with
+      <ic>name</ic>, <ic>value</ic>, <ic>unit</ic>, <ic>reference_range</ic>,
+      <ic>plain_explanation</ic> (max 3 sentences), <ic>confidence</ic>.
+    </p>
+
+    <h3>Prompting strategy</h3>
+    <p>
+      <strong>Few-shot prompting with 4 in-context examples</strong> — one per report type
+      (CBC lab, chest X-ray radiology, pneumonia discharge, breast biopsy pathology).
+      Each example is a full user→assistant pair showing the exact JSON schema the model must produce.
+      This teaches schema consistency without relying on JSON mode alone.
+    </p>
+    <p>Temperature 0.1 for consistency. Max tokens 8192 to handle reports with many findings.</p>
+
+    <pre><code><span class="cm"># explain.py — few-shot structure</span>
+FEW_SHOT_EXAMPLES = [
+    {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Analyse this lab report:\n..."</span>},
+    {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: CBC_RESPONSE},   <span class="cm"># from explain_examples.py</span>
+    {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Analyse this radiology report:\n..."</span>},
+    {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: RADIOLOGY_RESPONSE},
+    <span class="cm"># ... discharge + pathology pairs</span>
+]</code></pre>
+
+    <p>
+      <ic>explain_examples.py</ic> is a separate file (146 lines) that holds all response
+      string constants. This keeps <ic>explain.py</ic> under the 150-line project hard cap.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="flag"></span>
+    <h2>Agent 4 — FlagAgent</h2>
+    <p>File: <ic>app/agents/flag_agent.py</ic> · <ic>app/prompts/flag.py</ic></p>
+
+    <p>
+      Classifies each finding as
+      <span class="badge badge-urgent">urgent</span>
+      <span class="badge badge-watch">watch</span>
+      <span class="badge badge-normal">normal</span>.
+      Uses a <strong>rules-first, LLM-fallback</strong> architecture.
+    </p>
+
+    <h3>Rules engine (no LLM cost)</h3>
+    <p>Two patterns checked in order:</p>
+    <ol style="margin: 0 0 0.9rem 1.5rem; font-size: 0.82rem; color: #8b949e;">
+      <li style="margin-bottom: 0.4rem;"><strong style="color:#c9d1d9">Qualitative positive:</strong> if value matches <ic>/positive/i</ic> and reference range matches <ic>/negative|not detected/i</ic> → <ic>urgent</ic>. Catches pathology receptor status without an LLM call.</li>
+      <li><strong style="color:#c9d1d9">Numeric range:</strong> regex extracts value and low/high bounds. Deviation &gt; 50% of normal span → <ic>urgent</ic>; any deviation → <ic>watch</ic>.</li>
+    </ol>
+
+    <pre><code><span class="kw">def</span> <span class="fn">classify_numeric</span>(value, low, high):
+    normal_span = high - low
+    <span class="kw">if</span> low <= value <= high: <span class="kw">return</span> <span class="st">"normal"</span>, <span class="st">"Within range."</span>
+    deficit = (low - value) / normal_span  <span class="cm"># if below</span>
+    urgency = <span class="st">"urgent"</span> <span class="kw">if</span> deficit > <span class="nu">0.50</span> <span class="kw">else</span> <span class="st">"watch"</span>
+    <span class="kw">return</span> urgency, <span class="st">f"Value is below the normal range ({value} vs {low}–{high})."</span></code></pre>
+
+    <h3>LLM fallback</h3>
+    <p>
+      When neither pattern matches (qualitative findings like tumour grade, imaging descriptors,
+      discharge diagnoses), a chain-of-thought prompt is sent to Claude with the flag prompt.
+      The system prompt covers four domains: imaging severity, discharge findings,
+      pathology findings, and qualitative lab results. Temperature 0.1, max 1000 tokens.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="advisor"></span>
+    <h2>Agent 5 — AdvisorAgent</h2>
+    <p>File: <ic>app/agents/advisor_agent.py</ic> · <ic>app/prompts/advisor.py</ic></p>
+
+    <p>
+      Generates exactly <strong>5 questions</strong> the patient should ask their doctor.
+      Questions are specific to the actual flagged values — not generic health advice.
+      Temperature 0.4 (higher than other agents) for natural variation in phrasing.
+    </p>
+    <p>
+      The user message explicitly names the report type twice so the model tailors
+      question style appropriately (lab values vs imaging findings vs pathology results).
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="llm-svc"></span>
+    <h2>LLM service</h2>
+    <p>File: <ic>app/services/llm.py</ic></p>
+
+    <p>
+      Single shared Anthropic client with a <strong>30-second timeout</strong> and
+      <strong>exponential backoff retry</strong> (up to 3 attempts, 2s→4s→8s)
+      on transient errors (429, 500, 502, 503, 529, timeout).
+    </p>
+
+    <pre><code><span class="fn">@retry</span>(
+    retry=retry_if_exception_type(_RETRYABLE),
+    stop=stop_after_attempt(<span class="nu">3</span>),
+    wait=wait_exponential(multiplier=<span class="nu">1</span>, min=<span class="nu">2</span>, max=<span class="nu">8</span>),
+    reraise=<span class="nu">True</span>,
+)</code></pre>
+
+    <p>
+      After each call, input and output token counts are pushed to Prometheus
+      (<ic>LLM_TOKENS</ic> counter, labelled by agent name and direction).
+    </p>
+
+    <h3>JSON repair</h3>
+    <p>
+      If the LLM response fails <ic>json.loads()</ic> (e.g. truncated at max_tokens),
+      <ic>_repair_truncated_json()</ic> attempts recovery:
+      regex-extracts complete finding objects before the truncation point.
+      For non-finding shapes it returns safe empty defaults rather than raising.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="deid-svc"></span>
+    <h2>De-identification service</h2>
+    <p>File: <ic>app/services/deid.py</ic></p>
+
+    <p>
+      <ic>deidentify(text)</ic> returns a 3-tuple:
+      <ic>(anonymised_text, entity_list, deid_failed)</ic>.
+      It never raises — on any exception it returns <ic>("", [], True)</ic>
+      so the pipeline can abort cleanly via the conditional edge.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="session"></span>
+    <h2>Session store</h2>
+    <p>File: <ic>app/services/session.py</ic></p>
+
+    <p>
+      In-memory dict keyed by <ic>report_id</ic> (UUID v4). TTL 30 minutes.
+      Stores: <ic>findings</ic>, <ic>questions</ic>, <ic>report_type</ic>.
+      No database. No disk writes. minScale=1 on Cloud Run prevents cold starts
+      that would clear the store mid-session.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="api"></span>
+    <h2>API contracts</h2>
+
+    <h3>POST /api/upload → 200</h3>
+    <pre><code>{
+  <span class="st">"report_id"</span>:             <span class="st">"uuid-v4"</span>,
+  <span class="st">"report_type"</span>:           <span class="st">"lab | radiology | pathology | discharge"</span>,
+  <span class="st">"verdict"</span>: {
+    <span class="st">"level"</span>:               <span class="st">"urgent | watch | normal"</span>,
+    <span class="st">"summary"</span>:             <span class="st">"2 finding(s) require prompt attention"</span>
+  },
+  <span class="st">"findings"</span>: [{
+    <span class="st">"name"</span>:               <span class="st">"Haemoglobin"</span>,
+    <span class="st">"value"</span>:              <span class="st">"10.2 g/dL"</span>,
+    <span class="st">"reference_range"</span>:    <span class="st">"12.0–16.0 g/dL"</span>,
+    <span class="st">"urgency"</span>:            <span class="st">"watch"</span>,
+    <span class="st">"urgency_reason"</span>:     <span class="st">"Below normal range"</span>,
+    <span class="st">"explanation"</span>:        <span class="st">"Your haemoglobin is slightly below..."</span>
+  }],
+  <span class="st">"questions"</span>:            [<span class="st">"Could the low haemoglobin and MCV together indicate..."</span>],
+  <span class="st">"processing_time_ms"</span>:   <span class="nu">1842</span>,
+  <span class="st">"deid_entities_removed"</span>: <span class="nu">3</span>
+}</code></pre>
+
+    <h3>POST /api/chat → 200</h3>
+    <pre><code><span class="cm">// Request</span>
+{
+  <span class="st">"report_id"</span>:  <span class="st">"uuid"</span>,
+  <span class="st">"question"</span>:   <span class="st">"What does ER positive mean for my treatment?"</span>,
+  <span class="st">"report_type"</span>: <span class="st">"pathology"</span>,
+  <span class="st">"findings"</span>:   [...],   <span class="cm">// passed by client — no server lookup needed</span>
+  <span class="st">"questions"</span>:  [...]
+}
+
+<span class="cm">// Response</span>
+{ <span class="st">"answer"</span>: <span class="st">"ER positive means..."</span> }</code></pre>
+
+    <h3>Error codes</h3>
+    <table>
+      <tr><th>Code</th><th>Trigger</th><th>Detail</th></tr>
+      <tr><td>413</td><td>File &gt; 10 MB</td><td>File exceeds 10 MB limit</td></tr>
+      <tr><td>415</td><td>Wrong extension</td><td>Only PDF and plain text files are supported</td></tr>
+      <tr><td>422</td><td>DeID failure</td><td>Could not safely process this document</td></tr>
+      <tr><td>500</td><td>Pipeline error</td><td>Analysis failed. Please try again.</td></tr>
+    </table>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="observability"></span>
+    <h2>Observability</h2>
+
+    <table>
+      <tr><th>Layer</th><th>What's tracked</th><th>Where</th></tr>
+      <tr><td><strong>LangSmith</strong></td><td>Every LangGraph node: input state, output state, token counts, latency</td><td>langsmith.com · project <ic>clar-production</ic></td></tr>
+      <tr><td><strong>Prometheus</strong></td><td><ic>clar_requests_total</ic>, <ic>clar_pipeline_duration_seconds</ic>, <ic>clar_agent_duration_seconds</ic>, <ic>clar_deid_entities_total</ic>, <ic>clar_llm_tokens_total</ic>, <ic>clar_errors_total</ic></td><td><ic>GET /metrics</ic></td></tr>
+      <tr><td><strong>Grafana</strong></td><td>Pre-provisioned dashboard; scrapes <ic>/metrics</ic> every 15s via docker-compose</td><td><ic>localhost:3000</ic> (local) or Grafana Cloud</td></tr>
+      <tr><td><strong>Loguru</strong></td><td>JSON sink; request received, DeID complete, each agent start/complete, LLM call, pipeline complete, errors</td><td>Cloud Run log stream → GCP Logging</td></tr>
+    </table>
+
+    <p>Logs never contain <ic>raw_text</ic> or <ic>deid_text</ic> — only metadata (report type, entity count, latency, agent name). Every log line includes <ic>request_id</ic>.</p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="ci"></span>
+    <h2>CI / CD</h2>
+
+    <h3>ci.yml — every PR</h3>
+    <p>ruff lint → mypy type-check → pytest &gt;80% coverage → Next.js build → docker build</p>
+
+    <h3>cd.yml — merge to main</h3>
+    <p>All CI steps → GCP Workload Identity auth (no long-lived service account keys) → docker build + push to Artifact Registry (<ic>--platform linux/amd64</ic>) → <ic>gcloud run deploy</ic> → <ic>curl /health</ic> smoke test</p>
+
+    <p><ic>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</ic> is a Docker build arg — baked into the static JS bundle at build time, not a runtime env var.</p>
+
+    <h3>TDD discipline</h3>
+    <p>Every agent and service was test-written first (red → implement → green). Tests live in <ic>tests/unit/</ic> and <ic>tests/integration/</ic>. CI enforces &gt;80% coverage; PRs cannot merge without green tests.</p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="errors"></span>
+    <h2>Error handling strategy</h2>
+
+    <p>
+      All HTTP errors are raised as <ic>HTTPException</ic> in route handlers.
+      Agents catch their own exceptions, log them, and return <ic>{**state, "error": "..."}</ic>
+      so the pipeline continues to END and the route handler inspects the error field.
+      This means no agent can crash the server — the worst outcome is a 500 with an
+      actionable message.
+    </p>
+    <p>
+      The LLM client has a 30s timeout + 3-attempt retry with exponential backoff,
+      so transient API blips are handled transparently.
+    </p>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <span class="anchor" id="data-flow"></span>
+    <h2>Data flow summary</h2>
+
+    <pre><code>Client uploads PDF / .txt
+  │
+  ▼
+FastAPI route (async)
+  ├── validates extension + size
+  ├── writes to temp file
+  └── await run_in_executor → run_pipeline(tmp_path)
+                │
+                ▼
+          ExtractAgent  (outside graph)
+          ├── pdfplumber / txt decode
+          ├── detect report_type (keyword dict)
+          └── writes: raw_text, report_type → CLARState
+                │
+                ▼
+          DeIDAgent  (LangGraph node 1)
+          ├── Presidio analyzer + anonymizer
+          ├── custom MRN + SSN recognizers
+          ├── audit log: entity type, offsets, score
+          └── if failed → error_node → END → 422
+                │ (if clean)
+                ▼
+          ExplainAgent  (node 2)
+          ├── few-shot prompt (4 examples, one per type)
+          ├── Claude Sonnet 4.6 · temp 0.1 · max 8192 tok
+          └── writes: explanations (name, value, ref, plain_explanation, confidence)
+                │
+                ▼
+          FlagAgent  (node 3)
+          ├── rules: numeric range deviation, qualitative POSITIVE
+          ├── LLM fallback: CoT prompt for imaging / discharge / pathology
+          └── writes: flagged (+ urgency, urgency_reason per finding)
+                │
+                ▼
+          AdvisorAgent  (node 4)
+          ├── Claude Sonnet 4.6 · temp 0.4 · max 1000 tok
+          └── writes: questions (exactly 5, report-type aware)
+                │
+                ▼
+          CLARState returned to route handler
+          ├── build ReportResult + Verdict
+          ├── save session (in-memory, TTL 30 min)
+          ├── increment Prometheus metrics
+          └── 200 JSON response to client
+
+Later: client POSTs question to /api/chat
+  ├── findings + questions in request body (stateless)
+  ├── Claude Sonnet 4.6 · temp 0.3 · max 500 tok
+  ├── plain prose only (no markdown)
+  └── ChatResponse { answer: "..." }</code></pre>
+
+  </main>
+</div>
+</body>
+</html>
