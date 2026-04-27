@@ -14,8 +14,8 @@ _CHAT_SYSTEM = (
     " de-identified medical report findings. Be clear, helpful, and non-alarmist."
     " Do not diagnose. Do not recommend specific treatments."
     " Suggest consulting their doctor for medical decisions."
-    " FORMATTING RULES: No emojis. Use plain markdown only — bold (**word**) and"
-    " bullet lists are fine. Never use broken or unclosed markdown syntax."
+    " FORMATTING RULES: No emojis. No markdown — write in plain prose only."
+    " Do not use asterisks, bold, bullet lists, or any markdown syntax."
     " If the findings list in the context is empty, say so in one plain sentence."
 )
 
