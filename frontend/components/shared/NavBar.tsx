@@ -32,11 +32,11 @@ export function NavBar({ onNewReport, onMenuToggle, menuOpen }: NavBarProps) {
           </button>
         )}
         <div
-          className="text-white text-xl font-bold tracking-tight"
           onClick={onNewReport}
           style={{ cursor: onNewReport ? "pointer" : "default" }}
         >
-          CLAR
+          <div className="text-white text-xl font-bold tracking-tight">CLAR</div>
+          <div className="text-white text-xs opacity-75 tracking-wide">Your health reports, finally clear.</div>
         </div>
       </div>
       {onNewReport && (
